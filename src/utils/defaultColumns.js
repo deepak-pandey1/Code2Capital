@@ -1,0 +1,18 @@
+export const defaultColumns = [
+  { name: "Date", type: "date", isDefault: true },
+  { name: "Day", type: "text", isDefault: true },
+  { name: "Session", type: "select", options: ["London", "NY", "Asia"], isDefault: true },
+  { name: "Pair", type: "text", isDefault: true },
+  { name: "Trade Direction", type: "select", options: ["Buy", "Sell"], isDefault: true },
+  { name: "Trade Result", type: "select", options: ["Win", "Loss", "BE"], isDefault: true },
+  { name: "Risk Reward", type: "number", isDefault: true },
+  { name: "Entry Type", type: "text", isDefault: true },
+  { name: "Exit Type", type: "text", isDefault: true },
+  { name: "Mistake", type: "text", isDefault: true },
+  { name: "Trend Follow/Against", type: "select", options: ["Follow", "Against"], isDefault: true },
+  { name: "Trend", type: "text", isDefault: true },
+  { name: "Structure Quality", type: "text", isDefault: true },
+  { name: "Zone Respect", type: "select", options: ["Yes", "No"], isDefault: true },
+  { name: "Confidence Before Entry", type: "number", isDefault: true },
+  { name: "Pair Behavior", type: "text", isDefault: true },
+];
