@@ -1,185 +1,294 @@
 "use client";
 
-import { motion, useScroll } from "framer-motion";
-import { ArrowRight, BarChart3, BookOpen, Image as ImageIcon } from "lucide-react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+} from "framer-motion";
+import {
+  BarChart3,
+  BookOpen,
+  Image as ImageIcon,
+  TrendingUp,
+  Shield,
+  Zap,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useRef, useState, useEffect } from "react";
+import { FiSun, FiMoon } from "react-icons/fi";
+
+/* Counter */
+function Counter({ to, suffix = "" }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        let start = 0;
+        const step = Math.ceil(to / 60);
+        const id = setInterval(() => {
+          start += step;
+          if (start >= to) {
+            setCount(to);
+            clearInterval(id);
+          } else setCount(start);
+        }, 16);
+      }
+    });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [to]);
+
+  return <span ref={ref}>{count}{suffix}</span>;
+}
 
 export default function Home() {
   const router = useRouter();
-  const { scrollYProgress } = useScroll();
+  const { scrollYProgress, scrollY } = useScroll();
+
+  /* 🔥 smoother spring */
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 25,
+    mass: 0.5,
+  });
+
+  const heroY = useTransform(scrollY, [0, 500], [0, -120]);
+
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const [dark, setDark] = useState(true);
+
+  /* Cursor Glow */
+  useEffect(() => {
+    const move = (e) => setMouse({ x: e.clientX, y: e.clientY });
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
+  }, []);
+
+  /* Load theme */
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved === "light") setDark(false);
+  }, []);
+
+  /* Apply theme */
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [dark]);
 
   return (
-    <main className="bg-[#07070A] text-white overflow-x-hidden">
+    <main className="relative bg-[var(--bg)] text-[var(--text)] overflow-x-hidden">
 
-      {/* 🔥 TOP PROGRESS BAR */}
-      <motion.div
-        style={{ scaleX: scrollYProgress }}
-        className="fixed top-0 left-0 right-0 h-[2px] 
-        bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-400 
-        origin-left z-50"
+      {/* Cursor Glow */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0 transition duration-300"
+        style={{
+          background: `radial-gradient(600px at ${mouse.x}px ${mouse.y}px, rgba(34,197,94,0.10), transparent 80%)`,
+        }}
       />
 
-      {/* 🔥 BACKGROUND GLOW */}
-      <div className="fixed inset-0 -z-10">
-        <motion.div
-          animate={{ x: [0, 40, 0], y: [0, 30, 0] }}
-          transition={{ duration: 12, repeat: Infinity }}
-          className="absolute top-[-200px] left-[-200px] w-[500px] h-[500px] 
-          bg-purple-600 opacity-20 blur-[140px] rounded-full"
-        />
-        <motion.div
-          animate={{ x: [0, -40, 0], y: [0, -30, 0] }}
-          transition={{ duration: 14, repeat: Infinity }}
-          className="absolute bottom-[-200px] right-[-200px] w-[500px] h-[500px] 
-          bg-yellow-400 opacity-20 blur-[140px] rounded-full"
-        />
-      </div>
+      {/* Scroll Bar */}
+      <motion.div
+        style={{
+          scaleX,
+          background: "linear-gradient(90deg, #22c55e, #16a34a)",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "3px",
+          zIndex: 50,
+        }}
+      />
 
-      {/* ================= HERO ================= */}
-      <section className="min-h-screen flex flex-col items-center justify-center text-center px-5 relative">
+      {/* NAVBAR */}
+      <motion.nav
+        initial={{ y: -40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="fixed top-6 left-1/2 -translate-x-1/2 w-[92%] max-w-5xl px-6 py-3 z-50 
+        backdrop-blur-xl bg-[var(--card)] border border-[var(--border)] rounded-full 
+        flex justify-between items-center shadow-[0_8px_30px_rgba(0,0,0,0.4)]"
+      >
+        <h1 className="text-lg font-semibold tracking-wide">
+          Code2Capital
+        </h1>
 
-        <motion.div
+        <div className="flex items-center gap-3">
+          <motion.button
+  onClick={() => setDark(!dark)}
+  whileTap={{ scale: 0.85 }}
+  className="relative w-10 h-10 flex items-center justify-center rounded-full 
+  bg-[var(--card)] border border-[var(--border)] overflow-hidden"
+>
+
+  {/* Sun */}
+  <motion.div
+    initial={false}
+    animate={{
+      rotate: dark ? 90 : 0,
+      scale: dark ? 0 : 1,
+      opacity: dark ? 0 : 1,
+    }}
+    transition={{ duration: 0.5, ease: "easeInOut" }}
+    className="absolute"
+  >
+    <FiSun className="text-yellow-400 text-lg drop-shadow-[0_0_6px_rgba(255,200,0,0.6)]" />
+  </motion.div>
+
+  {/* Moon */}
+  <motion.div
+    initial={false}
+    animate={{
+      rotate: dark ? 0 : -90,
+      scale: dark ? 1 : 0,
+      opacity: dark ? 1 : 0,
+    }}
+    transition={{ duration: 0.5, ease: "easeInOut" }}
+    className="absolute"
+  >
+    <FiMoon className="text-[var(--text)] text-lg drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]" />
+  </motion.div>
+
+</motion.button>
+
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => router.push("/login")}
+            className="px-4 py-2 rounded-full text-sm 
+            bg-[var(--card)] hover:opacity-80 transition"
+          >
+            Login
+          </motion.button>
+        </div>
+      </motion.nav>
+
+      {/* HERO */}
+      <section className="min-h-screen flex flex-col justify-center items-center text-center px-5 pt-28">
+
+        <motion.h1
+          style={{ y: heroY }}
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="max-w-2xl"
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="text-3xl md:text-5xl font-[900]"
         >
-          <h1 className="text-4xl sm:text-6xl font-bold leading-tight tracking-tight 
-          bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-400 
-          bg-clip-text text-transparent">
-            Code2Capital
-          </h1>
+          Turn Data Into{" "}
+          <span className="text-green-400">
+            Profitable Decisions
+          </span>
+        </motion.h1>
 
-          <p className="mt-4 text-gray-400 text-sm sm:text-base leading-relaxed">
-            Turn your trading data into profit with a premium journal and analytics platform built for serious traders.
-          </p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-6 text-[var(--text)]/60 text-lg max-w-xl"
+        >
+          Track, analyze, and improve every trade with precision.
+        </motion.p>
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-8 justify-center">
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => router.push("/signup")}
+          className="mt-8 px-10 py-4 rounded-xl font-semibold 
+          bg-gradient-to-r from-green-400 to-green-600 
+          text-white shadow-lg shadow-green-500/30"
+        >
+          Get Started
+        </motion.button>
 
-            <button
-              onClick={() =>
-                document.getElementById("features").scrollIntoView({ behavior: "smooth" })
-              }
-              className="group px-6 py-3 rounded-xl 
-              bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-400 
-              font-medium flex items-center justify-center gap-2 
-              hover:scale-105 active:scale-95 transition-all 
-              shadow-lg shadow-purple-500/20"
-            >
-              Get Started
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-            </button>
-
-            <button
-              onClick={() => router.push("/login")}
-              className="px-6 py-3 rounded-xl border border-white/10 
-              bg-white/5 backdrop-blur-md hover:bg-white/10 
-              hover:scale-105 transition-all"
-            >
-              Login
-            </button>
+        {/* Stats */}
+        <div className="flex gap-12 mt-16">
+          <div>
+            <h2 className="text-green-400 text-3xl font-bold">
+              <Counter to={12000} suffix="+" />
+            </h2>
+            <p className="text-[var(--text)]/40 text-sm">Users</p>
           </div>
-        </motion.div>
 
-        <ScrollMouse />
-      </section>
-
-      {/* ================= FEATURES ================= */}
-      <section id="features" className="py-24 px-5">
-
-        <motion.h2
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-3xl md:text-4xl font-semibold text-center mb-16"
-        >
-          Everything You Need to Win 📈
-        </motion.h2>
-
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-
-          <FeatureCard
-            icon={<BookOpen />}
-            title="Smart Journal"
-            desc="Log every trade with precision and structured insights."
-          />
-
-          <FeatureCard
-            icon={<BarChart3 />}
-            title="Advanced Analytics"
-            desc="Track performance and improve faster."
-          />
-
-          <FeatureCard
-            icon={<ImageIcon />}
-            title="Trade Screenshots"
-            desc="Attach charts and review execution visually."
-          />
-
+          <div>
+            <h2 className="text-green-400 text-3xl font-bold">
+              <Counter to={98} suffix="%" />
+            </h2>
+            <p className="text-[var(--text)]/40 text-sm">Uptime</p>
+          </div>
         </div>
-
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-20 text-center"
-        >
-          <h3 className="text-xl md:text-2xl font-semibold mb-3">
-            Built for Serious Traders
-          </h3>
-
-          <p className="text-gray-400 mb-6 text-sm sm:text-base">
-            Stop guessing. Start improving with real data.
-          </p>
-
-          <button
-            onClick={() => router.push("/signup")}
-            className="px-6 py-3 rounded-xl bg-white text-black font-semibold 
-            hover:scale-105 transition-all shadow-lg"
-          >
-            Start Free
-          </button>
-        </motion.div>
-
       </section>
 
-      {/* FOOTER */}
-      <footer className="text-center py-6 border-t border-white/10 text-gray-500 text-sm">
-        © {new Date().getFullYear()} Code2Capital
+      {/* FEATURES */}
+      <section className="py-20 px-5">
+        <h2 className="text-center text-4xl font-bold mb-12">
+          Platform <span className="text-green-400">Features</span>
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {[
+            { icon: <BookOpen />, title: "Journal" },
+            { icon: <BarChart3 />, title: "Analytics" },
+            { icon: <TrendingUp />, title: "Profit Tracking" },
+            { icon: <Shield />, title: "Risk Control" },
+            { icon: <Zap />, title: "Insights" },
+            { icon: <ImageIcon />, title: "Charts" },
+          ].map((f, i) => (
+            <motion.div
+  key={f.title}
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }}
+
+  whileHover={{
+    scale: 1.06,
+    rotateX: 6,
+    rotateY: -6,
+  }}
+
+  style={{ transformStyle: "preserve-3d" }}
+
+  className="p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] backdrop-blur-xl 
+  transition-all duration-500 ease-out will-change-transform"
+>
+              <div className="text-green-400 mb-4">
+                {f.icon}
+              </div>
+              <h3 className="font-semibold mb-2">{f.title}</h3>
+              <p className="text-[var(--text)]/40 text-sm">
+                Powerful feature for better trading decisions.
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="text-center py-20">
+        <h2 className="text-5xl font-extrabold mb-6">
+          Start Your Trading Journey
+        </h2>
+
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => router.push("/signup")}
+          className="px-10 py-4 rounded-xl font-bold 
+          bg-gradient-to-r from-green-400 to-green-600 
+          text-white shadow-lg shadow-green-500/40"
+        >
+          Start Free Trial
+        </motion.button>
+      </section>
+
+      <footer className="text-center py-6 text-[var(--text)]/30 border-t border-[var(--border)]">
+        © 2026 Code2Capital
       </footer>
     </main>
-  );
-}
-
-/* ================= SCROLL MOUSE ================= */
-
-function ScrollMouse() {
-  return (
-    <div className="absolute bottom-8 flex flex-col items-center gap-2">
-      <div className="w-6 h-10 border-2 border-white/30 rounded-full flex items-start justify-center p-1">
-        <div className="w-1 h-2 bg-white rounded-full animate-bounce"></div>
-      </div>
-    </div>
-  );
-}
-
-/* ================= FEATURE CARD ================= */
-
-function FeatureCard({ icon, title, desc }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 60 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      viewport={{ once: true }}
-      whileHover={{ y: -10, scale: 1.03 }}
-      className="p-6 rounded-2xl bg-white/5 border border-white/10 
-      backdrop-blur-md hover:shadow-purple-500/20 transition-all"
-    >
-      <div className="text-purple-500 mb-3">{icon}</div>
-      <h3 className="text-base font-semibold mb-1">{title}</h3>
-      <p className="text-gray-400 text-sm leading-relaxed">{desc}</p>
-    </motion.div>
   );
 }
