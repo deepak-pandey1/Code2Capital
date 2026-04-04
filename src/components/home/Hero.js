@@ -3,7 +3,7 @@
 import { motion, useTransform } from "framer-motion";
 import Counter from "./Counter";
 
-export default function Hero({ router, scrollY }) {
+export default function Hero({ router, scrollY, openLogin }) {
 
   const heroY = useTransform(scrollY, [0, 500], [0, -120]);
 
@@ -35,7 +35,7 @@ export default function Hero({ router, scrollY }) {
       <motion.button
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => router.push("/signup")}
+        onClick={openLogin}
         className="mt-8 px-10 py-4 rounded-xl font-semibold 
         bg-gradient-to-r from-green-400 to-green-600 
         text-white shadow-lg shadow-green-500/30"

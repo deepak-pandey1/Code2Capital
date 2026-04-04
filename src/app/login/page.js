@@ -13,7 +13,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Google Login
   const handleGoogle = async () => {
     try {
       setLoading(true);
@@ -26,7 +25,6 @@ export default function Login() {
     }
   };
 
-  // Send OTP
   const handleSendOTP = async () => {
     try {
       setLoading(true);
@@ -40,7 +38,6 @@ export default function Login() {
     }
   };
 
-  // Verify OTP
   const handleVerifyOTP = async () => {
     try {
       setLoading(true);
@@ -54,24 +51,34 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#0B0B0F] text-white px-6">
+    <div
+  className="w-full flex items-center justify-center 
+  text-[var(--text)]"
+>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md p-8 rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10"
+        className="w-full max-w-md p-8 rounded-2xl 
+        bg-[var(--card)] backdrop-blur-xl 
+        border border-[var(--border)] 
+        shadow-[0_10px_40px_rgba(0,0,0,0.25)]"
       >
         <h2 className="text-2xl font-semibold mb-6 text-center">
           Login to Code2Capital
         </h2>
 
         {error && (
-          <p className="text-red-400 text-sm mb-3 text-center">{error}</p>
+          <p className="text-red-500 text-sm mb-3 text-center">{error}</p>
         )}
 
         {/* Google Login */}
         <button
           onClick={handleGoogle}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-yellow-400 mb-4 hover:scale-105 transition"
+          className="w-full py-3 rounded-xl mb-4 
+          bg-[var(--primary)] 
+          text-white font-semibold
+          hover:scale-[1.03] hover:shadow-lg hover:shadow-green-500/30
+          transition-all duration-200"
         >
           {loading ? "Loading..." : "Continue with Google"}
         </button>
@@ -82,13 +89,19 @@ export default function Login() {
           placeholder="+91XXXXXXXXXX"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full p-3 rounded-lg bg-white/5 border border-white/10 mb-3"
+          className="w-full p-3 rounded-lg mb-3 
+          bg-[var(--card)] text-[var(--text)]
+          border border-[var(--border)] 
+          outline-none focus:ring-2 focus:ring-[var(--primary)]"
         />
 
         {!confirm ? (
           <button
             onClick={handleSendOTP}
-            className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 transition"
+            className="w-full py-3 rounded-xl 
+            border border-[var(--primary)] text-[var(--primary)]
+            hover:bg-[var(--primary)] hover:text-white
+            transition-all duration-200"
           >
             Send OTP
           </button>
@@ -99,20 +112,26 @@ export default function Login() {
               placeholder="Enter OTP"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              className="w-full p-3 rounded-lg bg-white/5 border border-white/10 mt-3"
+              className="w-full p-3 rounded-lg mt-3 
+              bg-[var(--card)] text-[var(--text)]
+              border border-[var(--border)] 
+              outline-none focus:ring-2 focus:ring-[var(--primary)]"
             />
 
             <button
               onClick={handleVerifyOTP}
-              className="w-full py-3 rounded-xl bg-purple-600 mt-3"
+              className="w-full py-3 rounded-xl mt-3 
+              bg-[var(--primary)] text-white font-semibold
+              hover:brightness-110 hover:shadow-lg hover:shadow-green-500/30
+              transition-all duration-200"
             >
               Verify OTP
             </button>
           </>
         )}
 
-        <div id="recaptcha"></div>
+        <div id="recaptcha" className="mt-4"></div>
       </motion.div>
-    </main>
+    </div>
   );
 }

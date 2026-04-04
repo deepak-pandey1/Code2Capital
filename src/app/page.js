@@ -13,6 +13,9 @@ import GlobalReach from "@/components/home/GlobalReach";
 import Achievement from "@/components/home/Achievement";
 import Footer from "@/components/home/Footer";
 
+// ✅ ADD THIS IMPORT
+import LoginModal from "@/components/common/LoginModal";
+
 export default function Home() {
   const router = useRouter();
   const { scrollYProgress, scrollY } = useScroll();
@@ -25,6 +28,9 @@ export default function Home() {
 
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [dark, setDark] = useState(true);
+
+  // ✅ ADD THIS STATE (THIS IS STEP 2)
+  const [openLogin, setOpenLogin] = useState(false);
 
   useEffect(() => {
     const move = (e) => setMouse({ x: e.clientX, y: e.clientY });
@@ -59,29 +65,44 @@ export default function Home() {
       />
 
       {/* Scroll Bar */}
-<motion.div
-  style={{
-    scaleX,
-    transformOrigin: "center", // ✅ THIS LINE IS IMPORTANT
-    background: "linear-gradient(90deg, #22c55e, #16a34a)",
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: "3px",
-    zIndex: 100,
-  }}
-/>
+      <motion.div
+        style={{
+          scaleX,
+          transformOrigin: "center",
+          background: "linear-gradient(90deg, #22c55e, #16a34a)",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "3px",
+          zIndex: 100,
+        }}
+      />
 
-      <Navbar dark={dark} setDark={setDark} router={router} />
+      {/* ✅ PASS PROP HERE */}
+      <Navbar 
+        dark={dark} 
+        setDark={setDark} 
+        router={router}
+        openLogin={() => setOpenLogin(true)}
+      />
 
-      <Hero router={router} scrollY={scrollY} />
+      {/* ✅ PASS PROP HERE */}
+      <Hero 
+        router={router} 
+        scrollY={scrollY}
+        openLogin={() => setOpenLogin(true)}
+      />
+
       <Features />
       <DashboardPreview />
       <Benefits />
       <GlobalReach />
-      <Achievement />
+      {/* <Achievement /> */}
       <Footer />
+
+      {/* ✅ ADD MODAL HERE (IMPORTANT) */}
+      <LoginModal open={openLogin} setOpen={setOpenLogin} />
 
     </main>
   );

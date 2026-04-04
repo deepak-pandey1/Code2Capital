@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { FiSun, FiMoon } from "react-icons/fi";
 import AnimatedLogo from "./AnimatedLogo";
 
-export default function Navbar({ dark, setDark, router }) {
+export default function Navbar({ dark, setDark, router, openLogin }) {
   return (
     <motion.nav
       initial={{ y: -40, opacity: 0 }}
@@ -29,7 +29,7 @@ export default function Navbar({ dark, setDark, router }) {
 
         <motion.button
           whileTap={{ scale: 0.9 }}
-          onClick={() => router.push("/login")}
+          onClick={openLogin}
           className="px-4 py-2 rounded-full text-sm bg-[var(--card)]"
         >
           Login
