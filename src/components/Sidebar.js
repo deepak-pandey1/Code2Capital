@@ -52,25 +52,17 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
       {/* ================= SIDEBAR ================= */}
       <motion.aside
-  layout
+  initial={false}
   animate={{
-    scaleX: collapsed ? 0.96 : 1, // 👈 subtle depth effect
+    width: collapsed ? 56 : 260, // 👈 yaha width kam ki hai
   }}
   transition={{
-    layout: {
-      type: "spring",
-      stiffness: collapsed ? 320 : 220, // 👈 faster when closing, softer when opening
-      damping: collapsed ? 28 : 22,
-    },
-    scaleX: {
-      type: "spring",
-      stiffness: 300,
-      damping: 20,
-    },
+    type: "spring",
+    stiffness: 300,
+    damping: 30,
   }}
   className={`
-    fixed top-0 left-0 h-full z-50 origin-left
-    ${collapsed ? "w-20" : "w-64"}
+    fixed top-0 left-0 h-full z-50 overflow-hidden
     ${open ? "translate-x-0" : "-translate-x-full"}
     md:translate-x-0
   `}
@@ -81,9 +73,9 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   }}
 >
         {/* ===== HEADER ===== */}
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between p-2.5">
           
-          <div className="flex items-center gap-2 overflow-hidden">
+          <div className="flex items-center gap-2 ">
             <AnimatedLogo />
 
             <AnimatePresence mode="wait">
