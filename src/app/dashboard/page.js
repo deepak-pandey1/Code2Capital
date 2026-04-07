@@ -1,167 +1,317 @@
 "use client";
-import { useState } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import DailyQuote from "@/components/common/DailyQuote";
-import { 
-  Zap, 
-  CheckCircle2, 
-  TrendingUp, 
-  Brain, 
-  ShieldAlert, 
-  BarChart3, 
-  Camera, 
-  Activity, 
-  Layers, 
-  Target, 
-  Clock,
-  PlusCircle // <--- Add this one
+import {
+  Clock3,
+  Calculator,
+  Sparkles,
+  Plus,
+  PencilLine,
+  Trash2,
+  Save,
+  X,
 } from "lucide-react";
 
-// --- Reusable Premium Card ---
-const SectionCard = ({ children, title, icon: Icon, badge }) => (
-  <motion.div 
-    initial={{ opacity: 0, scale: 0.98 }}
-    animate={{ opacity: 1, scale: 1 }}
-    whileHover={{ y: -4 }}
-    className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] flex flex-col h-full transition-all"
+/* ---------- PREMIUM SMALL CARD ---------- */
+const SectionCard = ({ title, icon: Icon, children }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    whileHover={{ y: -2 }}
+    transition={{ duration: 0.2 }}
+    className="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm"
   >
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2 text-gray-400 font-bold text-xs uppercase tracking-widest">
-        {Icon && <Icon size={16} className="text-[var(--primary)]" />} {title}
+    <div className="flex items-center gap-2 px-4 pt-4">
+      <div className="h-8 w-8 flex items-center justify-center rounded-xl bg-[rgba(34,197,94,0.08)] border border-[var(--border)]">
+        <Icon className="h-4 w-4 text-[var(--primary)]" />
       </div>
-      {badge && <span className="px-2 py-0.5 rounded text-[10px] bg-white/5 border border-white/10 text-gray-400">{badge}</span>}
+      <h2 className="text-sm font-semibold">{title}</h2>
     </div>
-    <div className="flex-1">{children}</div>
+    <div className="px-4 pb-4 pt-3">{children}</div>
   </motion.div>
 );
 
+/* ---------- TIME + SESSION ---------- */
+function getISTTime() {
+  return new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date());
+}
+
+function getActiveSessions() {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+
+  const h = Number(parts.find((p) => p.type === "hour")?.value || 0);
+  const m = Number(parts.find((p) => p.type === "minute")?.value || 0);
+  const current = h * 60 + m;
+
+  const inRange = (s, e) =>
+    s <= e ? current >= s && current < e : current >= s || current < e;
+
+  const sessions = [
+    { name: "Sydney", s: 210, e: 750 },
+    { name: "Tokyo", s: 330, e: 870 },
+    { name: "London", s: 810, e: 1350 },
+    { name: "New York", s: 1110, e: 210 },
+  ];
+
+  return sessions.filter((x) => inRange(x.s, x.e)).map((x) => x.name);
+}
+
+/* ---------- MAIN ---------- */
 export default function Dashboard() {
-  const [mood, setMood] = useState(2);
-  const [checklist, setChecklist] = useState([false, false, false, false]);
+  const istTime = useMemo(() => getISTTime(), []);
+  const activeSessions = useMemo(() => getActiveSessions(), []);
+
+  /* ---------- CALCULATOR ---------- */
+  const [accountSize, setAccountSize] = useState("10000");
+  const [riskPercent, setRiskPercent] = useState("1");
+  const [sl, setSl] = useState("20");
+  const [pip, setPip] = useState("10");
+
+  const riskAmount = (accountSize * riskPercent) / 100;
+  const lot = riskAmount / (sl * pip || 1);
+  const units = lot * 100000;
+
+  /* ---------- CORE RULE ---------- */
+  const [ruleText, setRuleText] = useState("");
+  const [savedRule, setSavedRule] = useState(null);
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/core-rule")
+      .then((res) => res.json())
+      .then((d) => {
+        if (d?.rule) {
+          setSavedRule(d.rule);
+          setRuleText(d.rule.text);
+        }
+      });
+  }, []);
+
+  const saveRule = async () => {
+    const method = savedRule ? "PUT" : "POST";
+    const res = await fetch("/api/core-rule", {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: ruleText }),
+    });
+    const data = await res.json();
+    setSavedRule(data.rule);
+    setEditing(false);
+  };
+
+  const deleteRule = async () => {
+    await fetch("/api/core-rule", { method: "DELETE" });
+    setSavedRule(null);
+    setRuleText("");
+  };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-4 md:p-8 space-y-6">
-      {/* HEADER */}
-      <header className="flex flex-col md:flex-row justify-between items-end gap-4 mb-8">
-        <div>
-          <h1 className="text-4xl font-black tracking-tighter">COMMAND CENTER</h1>
-          <p className="text-gray-500 font-medium">Precision Trading Architecture v2.0</p>
-        </div>
-        <div className="flex gap-2">
-          <button className="px-4 py-2 bg-[var(--card)] border border-[var(--border)] rounded-xl text-xs font-bold hover:bg-white/10">PRE-MARKET</button>
-          <button className="px-4 py-2 bg-[var(--primary)] text-black rounded-xl text-xs font-bold hover:scale-105 transition-transform">GO LIVE</button>
-        </div>
-      </header>
-
-      {/* GRID LAYOUT: 10 SECTIONS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] px-4 py-5 md:px-8">
+      <div className="max-w-6xl mx-auto space-y-5">
         
-        {/* 1. DAILY INSIGHT (Span 2) */}
-        <div className="lg:col-span-2">
+        {/* HEADER */}
+        <div className="flex flex-col md:flex-row justify-between gap-3">
+          <div>
+            <p className="text-[10px] tracking-[0.3em] text-[var(--primary)] uppercase">
+              Trading Workspace
+            </p>
+            <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
+          </div>
+
+          <div className="text-sm border border-[var(--border)] px-3 py-2 rounded-xl">
+            {istTime}
+          </div>
+        </div>
+
+        {/* MOTIVATION (TOP STRIP) */}
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
           <DailyQuote />
         </div>
 
-        {/* 2. MARKET SESSION */}
-        <SectionCard title="Active Session" icon={Clock}>
-          <div className="flex items-center justify-between mt-2">
-            <div>
-              <h4 className="text-2xl font-bold">London</h4>
-              <p className="text-xs text-gray-500">High Volume Expected</p>
+        {/* GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+          {/* SESSION */}
+          <SectionCard title="Active Session" icon={Clock3}>
+  <div className="space-y-3">
+
+    {/* ACTIVE NOW */}
+    <div className="flex flex-wrap gap-2">
+      {activeSessions.length > 0 ? (
+        activeSessions.map((s, i) => (
+          <motion.div
+            key={s}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            whileHover={{ scale: 1.05 }}
+            className="relative px-3 py-1.5 rounded-full text-xs font-medium 
+            bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20 
+            flex items-center gap-2 overflow-hidden"
+          >
+            {/* glowing pulse */}
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-60"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--primary)]"></span>
+            </span>
+
+            {s}
+          </motion.div>
+        ))
+      ) : (
+        <p className="text-xs text-[var(--text)]/60">
+          Low activity period
+        </p>
+      )}
+    </div>
+
+    {/* SESSION CARDS */}
+    <div className="grid grid-cols-2 gap-2">
+      {[
+        { name: "Sydney", time: "3:30 AM" },
+        { name: "Tokyo", time: "5:30 AM" },
+        { name: "London", time: "1:30 PM" },
+        { name: "New York", time: "6:30 PM" },
+      ].map((s, i) => {
+        const active = activeSessions.includes(s.name);
+
+        return (
+          <motion.div
+            key={s.name}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            whileHover={{ y: -3 }}
+            className={`relative rounded-xl p-3 border transition-all
+            ${
+              active
+                ? "border-[var(--primary)]/40 bg-[var(--primary)]/10 shadow-[0_0_12px_rgba(34,197,94,0.15)]"
+                : "border-[var(--border)] bg-[var(--bg)]/40"
+            }`}
+          >
+            {/* ACTIVE DOT */}
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-semibold">{s.name}</span>
+
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  active ? "bg-[var(--primary)]" : "bg-gray-300"
+                }`}
+              />
             </div>
-            <div className="relative h-3 w-3">
-              <span className="animate-ping absolute h-full w-full rounded-full bg-green-500 opacity-75"></span>
-              <span className="relative block h-3 w-3 rounded-full bg-green-500"></span>
-            </div>
-          </div>
-        </SectionCard>
 
-        {/* 3. PSYCHOLOGY METER */}
-        <SectionCard title="Psychology" icon={Brain}>
-          <div className="flex justify-between items-center bg-black/40 p-3 rounded-xl">
-            {['😡', '😨', '😐', '🙂', '🔥'].map((emoji, i) => (
-              <button key={i} onClick={() => setMood(i)} className={`text-xl transition-all ${mood === i ? "scale-125 grayscale-0" : "grayscale opacity-30 hover:opacity-100"}`}>
-                {emoji}
-              </button>
-            ))}
-          </div>
-          <p className="text-[10px] mt-2 text-center text-gray-500 font-medium">Status: {mood > 2 ? 'Optimal' : 'Caution Advised'}</p>
-        </SectionCard>
-
-        {/* 4. PRE-TRADE CHECKLIST */}
-        <SectionCard title="Checklist" icon={CheckCircle2} badge="4 Tasks">
-          <div className="space-y-2 mt-1">
-            {["Economic Calendar", "HTF Bias", "Risk Per Trade", "Mental Check"].map((item, i) => (
-              <label key={i} className="flex items-center gap-3 text-sm cursor-pointer group">
-                <input type="checkbox" className="w-4 h-4 rounded border-[var(--border)] accent-[var(--primary)]" />
-                <span className="text-gray-400 group-hover:text-white transition-colors">{item}</span>
-              </label>
-            ))}
-          </div>
-        </SectionCard>
-
-        {/* 5. VOLATILITY HEATMAP (Advanced) */}
-        <SectionCard title="Market Heat" icon={Activity}>
-          <div className="grid grid-cols-2 gap-2">
-            {[{p:'EUR', v:'+0.4%'}, {p:'USD', v:'-0.1%'}, {p:'XAU', v:'+1.2%'}, {p:'BTC', v:'-2.4%'}].map((coin, i) => (
-              <div key={i} className="bg-white/5 p-2 rounded-lg text-center">
-                <div className="text-[10px] font-bold text-gray-500">{coin.p}</div>
-                <div className={`text-xs font-bold ${coin.v.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>{coin.v}</div>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-
-        {/* 6. TRADE BIAS PANEL */}
-        <SectionCard title="Bias Center" icon={TrendingUp}>
-          <div className="space-y-3">
-            {[{pair: 'EURUSD', b: 'BULLISH'}, {pair: 'Gold', b: 'BEARISH'}].map((b, i) => (
-              <div key={i} className="flex justify-between items-center bg-white/5 p-2 rounded-lg border border-white/5">
-                <span className="text-xs font-bold">{b.pair}</span>
-                <span className={`text-[10px] font-black ${b.b === 'BULLISH' ? 'text-green-400' : 'text-red-400'}`}>{b.b}</span>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-
-        {/* 7. RISK CALCULATOR (Advanced) */}
-        <SectionCard title="Risk Engine" icon={Target} badge="Calculator">
-          <div className="space-y-2">
-            <div className="flex justify-between text-[10px] text-gray-500"><span>Acc Size</span><span>Risk 1%</span></div>
-            <div className="text-lg font-mono font-bold">$10,000 → $100</div>
-            <button className="w-full py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold hover:bg-white/10">ADJUST PARAMS</button>
-          </div>
-        </SectionCard>
-
-        {/* 8. QUICK ACTIONS (Span 2) */}
-        <div className="lg:col-span-2 grid grid-cols-2 gap-4">
-           <button className="flex items-center justify-center gap-3 p-4 bg-white/5 border border-dashed border-[var(--border)] rounded-2xl hover:bg-[var(--primary)] hover:text-black transition-all group">
-              <PlusCircle className="group-hover:rotate-90 transition-transform" /> <span className="font-bold text-sm">New Journal</span>
-           </button>
-           <button className="flex items-center justify-center gap-3 p-4 bg-white/5 border border-dashed border-[var(--border)] rounded-2xl hover:bg-blue-500 hover:text-white transition-all group">
-              <Camera /> <span className="font-bold text-sm">Capture Chart</span>
-           </button>
-        </div>
-
-        {/* 9. TODAY'S RULE */}
-        <SectionCard title="Core Rule" icon={ShieldAlert}>
-          <div className="h-full flex items-center justify-center">
-            <textarea 
-              className="w-full bg-transparent text-lg font-medium italic border-none outline-none text-center placeholder:text-gray-700 resize-none"
-              placeholder="Write your #1 rule..."
-              defaultValue="No trades after 2 losses."
-            />
-          </div>
-        </SectionCard>
-
-        {/* 10. MISTAKE REMINDER */}
-        <SectionCard title="Avoid This" icon={Layers}>
-          <div className="bg-orange-500/10 border border-orange-500/20 p-3 rounded-xl">
-            <p className="text-xs text-orange-200/80 leading-relaxed italic">
-              "Over-leveraging on high-impact news days is a gamble, not a trade. Protect your capital first."
+            {/* TIME */}
+            <p className="text-[11px] mt-1 text-[var(--text)]/60">
+              {s.time}
             </p>
-          </div>
-        </SectionCard>
 
+            {/* subtle glow line */}
+            {active && (
+              <div className="absolute bottom-0 left-0 h-[2px] w-full bg-[var(--primary)] opacity-60 rounded-full"></div>
+            )}
+          </motion.div>
+        );
+      })}
+    </div>
+
+  </div>
+</SectionCard>
+
+          {/* CALCULATOR */}
+          <SectionCard title="Position Size" icon={Calculator}>
+            <div className="space-y-2 text-sm">
+              <input
+                value={accountSize}
+                onChange={(e) => setAccountSize(e.target.value)}
+                placeholder="Account"
+                className="input"
+              />
+              <input
+                value={riskPercent}
+                onChange={(e) => setRiskPercent(e.target.value)}
+                placeholder="Risk %"
+                className="input"
+              />
+              <input
+                value={sl}
+                onChange={(e) => setSl(e.target.value)}
+                placeholder="SL pips"
+                className="input"
+              />
+              <input
+                value={pip}
+                onChange={(e) => setPip(e.target.value)}
+                placeholder="Pip value"
+                className="input"
+              />
+
+              <div className="text-xs mt-2">
+                Risk: ${riskAmount.toFixed(2)} <br />
+                Lot: {lot.toFixed(2)} <br />
+                Units: {Math.round(units)}
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* CORE RULE */}
+          <SectionCard title="Core Rule" icon={PencilLine}>
+            <div className="group relative">
+
+              {!savedRule && !editing && (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="w-full border border-dashed rounded-xl py-4 text-sm flex justify-center gap-2"
+                >
+                  <Plus size={14} /> Add rule
+                </button>
+              )}
+
+              {editing && (
+                <>
+                  <textarea
+                    value={ruleText}
+                    onChange={(e) => setRuleText(e.target.value)}
+                    className="w-full border rounded-xl p-2 text-sm"
+                  />
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={saveRule} className="btn-primary">
+                      Save
+                    </button>
+                    <button onClick={() => setEditing(false)}>
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {savedRule && !editing && (
+                <>
+                  <p className="italic text-lg">“{savedRule.text}”</p>
+
+                  {/* HOVER BUTTONS */}
+                  <div className="opacity-0 group-hover:opacity-100 transition absolute top-0 right-0 flex gap-2">
+                    <button onClick={() => setEditing(true)}>Edit</button>
+                    <button onClick={deleteRule}>Delete</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </SectionCard>
+
+        </div>
       </div>
     </div>
   );
