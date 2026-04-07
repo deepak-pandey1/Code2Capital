@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -7,8 +8,16 @@ import {
   BookOpen,
   BarChart3,
   ChevronLeft,
+  ChevronUp,
   X,
+  LogOut,
+  UserCircle2,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { logoutUser } from "@/utils/auth";
 
 export function LogoMark({ size = 40, className = "" }) {
   return (
@@ -90,13 +99,13 @@ export function LogoMark({ size = 40, className = "" }) {
   );
 }
 
-function BrandMark({ collapsed }) {
+function BrandMark({ compact }) {
   return (
-    <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+    <div className={`flex items-center ${compact ? "justify-center" : "gap-3"}`}>
       <LogoMark size={40} />
 
       <AnimatePresence initial={false}>
-        {!collapsed && (
+        {!compact && (
           <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -124,9 +133,63 @@ export default function Sidebar({
   setCollapsed,
   mobileOpen,
   setMobileOpen,
+  dark,
+  setDark,
 }) {
   const router = useRouter();
   const pathname = usePathname();
+
+  const [isMobile, setIsMobile] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const compact = !isMobile && collapsed;
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+
+    const update = () => setIsMobile(mq.matches);
+    update();
+
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const onClickOutside = (event) => {
+      if (!event.target.closest("[data-account-menu]")) {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    if (accountMenuOpen) {
+      document.addEventListener("mousedown", onClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [accountMenuOpen]);
+
+  const handleLogout = async () => {
+    try {
+      setAccountMenuOpen(false);
+      setMobileOpen(false);
+
+      setTimeout(async () => {
+        await logoutUser();
+        router.replace("/");
+      }, 180);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -134,110 +197,259 @@ export default function Sidebar({
     { name: "Analytics", icon: BarChart3, path: "/dashboard/analytics" },
   ];
 
-  return (
-    <>      
-      {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{
-          width: collapsed ? 76 : 280,
-        }}
-        className={`
-          fixed left-0 top-0 z-50 flex h-dvh flex-col border-r border-[var(--border)]
-          bg-[var(--card)]/95 shadow-2xl backdrop-blur-xl
-          transform transition-transform duration-300 ease-out
-          w-[82vw] max-w-[320px]
-          md:sticky md:top-0 md:w-auto md:max-w-none
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0
-        `}
-        style={{
-          "--sidebar-width": collapsed ? "76px" : "280px",
-        }}
-      >
-        <div className="flex h-full flex-col p-3 md:p-3">
-          {/* Top brand area */}
-          <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl px-2 py-2">
-            <BrandMark collapsed={collapsed} />
+  const displayName =
+    user?.displayName ||
+    user?.phoneNumber ||
+    user?.email?.split("@")?.[0] ||
+    "Guest";
 
-            <div className="flex items-center gap-1">
+  const initials = (displayName || "U")
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <motion.aside
+      initial={false}
+      animate={
+        isMobile
+          ? { x: mobileOpen ? "0%" : "-105%" }
+          : { width: compact ? 76 : 280, x: 0 }
+      }
+      transition={
+        isMobile
+          ? {
+              x: { type: "spring", stiffness: 380, damping: 34, mass: 0.9 },
+            }
+          : {
+              width: { duration: 0.28, ease: "easeOut" },
+            }
+      }
+      className={`
+  fixed left-0 top-0 z-50 flex h-dvh flex-col border-r border-[var(--border)]
+  
+  /* MOBILE = glass effect */
+  bg-[var(--card)]/80 backdrop-blur-xl
+  
+  /* DESKTOP = solid clean */
+  md:bg-[var(--card)] md:backdrop-blur-none
+  
+  shadow-2xl
+  ${isMobile ? "w-[88vw] max-w-[340px]" : ""}
+  md:sticky md:top-0 md:translate-x-0
+`}
+      style={{
+        width: isMobile ? undefined : compact ? "76px" : "280px",
+        willChange: "transform, width",
+      }}
+    >
+      <div className="flex h-full flex-col p-3 md:p-3">
+        {/* Top brand */}
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl px-2 py-2">
+          <BrandMark compact={compact} />
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden rounded-xl p-2 text-[var(--text)]/80 transition hover:bg-[var(--bg)] hover:text-[var(--text)] md:inline-flex"
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <ChevronLeft
+                size={18}
+                className={`transition-transform duration-300 ${
+                  collapsed ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="inline-flex rounded-xl p-2 text-[var(--text)]/80 transition hover:bg-[var(--bg)] hover:text-[var(--text)] md:hidden"
+              aria-label="Close sidebar"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Menu */}
+        <nav className="flex-1 space-y-2 overflow-y-auto pr-1">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const active = pathname === item.path;
+
+            return (
               <button
-                onClick={() => setCollapsed(!collapsed)}
-                className="hidden rounded-xl p-2 text-[var(--text)]/80 transition hover:bg-[var(--bg)] hover:text-[var(--text)] md:inline-flex"
-                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                key={item.path}
+                onClick={() => {
+                  router.push(item.path);
+                  setMobileOpen(false);
+                  setAccountMenuOpen(false);
+                }}
+                className={`
+                  group flex w-full items-center rounded-2xl px-3 py-3 text-sm font-medium
+                  transition-all duration-200 ease-out
+                  ${compact ? "justify-center px-2" : "justify-start gap-3"}
+                  ${
+                    active
+                      ? "bg-[var(--primary)]/15 text-[var(--text)] ring-1 ring-[var(--primary)]/20"
+                      : "text-[var(--text)]/75 hover:bg-[var(--bg)] hover:text-[var(--text)]"
+                  }
+                `}
+                title={compact ? item.name : undefined}
+                aria-label={item.name}
               >
-                <ChevronLeft
-                  size={18}
-                  className={`transition-transform duration-300 ${
-                    collapsed ? "rotate-180" : ""
+                <Icon
+                  size={20}
+                  className={`shrink-0 transition-transform duration-200 group-hover:scale-105 ${
+                    active ? "text-[var(--primary)]" : ""
                   }`}
                 />
+
+                <AnimatePresence initial={false}>
+                  {!compact && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -8 }}
+                      transition={{ duration: 0.18 }}
+                      className="whitespace-nowrap"
+                    >
+                      {item.name}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </button>
+            );
+          })}
+        </nav>
 
-              <button
-                onClick={() => setMobileOpen(false)}
-                className="inline-flex rounded-xl p-2 text-[var(--text)]/80 transition hover:bg-[var(--bg)] hover:text-[var(--text)] md:hidden"
-                aria-label="Close sidebar"
-              >
-                <X size={18} />
-              </button>
-            </div>
-          </div>
+        {/* Bottom account section */}
+        <div className="mt-auto pt-3 border-t border-[var(--border)]">
+          <div className="relative" data-account-menu>
+            <button
+              onClick={() => setAccountMenuOpen((v) => !v)}
+              className={`
+                flex w-full items-center rounded-2xl px-3 py-3 text-sm font-medium
+                transition-all duration-200 ease-out
+                ${compact ? "justify-center px-2" : "justify-start gap-3"}
+                bg-[var(--bg)]/50 hover:bg-[var(--bg)]/80 text-[var(--text)]
+                border border-[var(--border)]
+              `}
+              aria-label="Open account menu"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[var(--primary)] font-bold">
+                {initials}
+              </div>
 
-          {/* Menu */}
-          <nav className="flex-1 space-y-2 overflow-y-auto pr-1">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const active = pathname === item.path;
+              {!compact && (
+                <>
+                  <div className="min-w-0 flex-1 text-left">
+                    <p className="truncate text-sm font-semibold leading-tight">
+                      {displayName}
+                    </p>
+                    <p className="text-[11px] text-[var(--text)]/55">
+                      Manage account
+                    </p>
+                  </div>
 
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => {
-                    router.push(item.path);
-                    setMobileOpen(false);
-                  }}
-                  className={`
-                    group flex w-full items-center rounded-2xl px-3 py-3 text-sm font-medium
-                    transition-all duration-200 ease-out
-                    ${collapsed ? "justify-center px-2" : "justify-start gap-3"}
-                    ${
-                      active
-                        ? "bg-[var(--primary)]/15 text-[var(--text)] ring-1 ring-[var(--primary)]/20"
-                        : "text-[var(--text)]/75 hover:bg-[var(--bg)] hover:text-[var(--text)]"
-                    }
-                  `}
-                  title={collapsed ? item.name : undefined}
-                  aria-label={item.name}
-                >
-                  <Icon
-                    size={20}
-                    className={`shrink-0 transition-transform duration-200 group-hover:scale-105 ${
-                      active ? "text-[var(--primary)]" : ""
+                  <ChevronUp
+                    size={16}
+                    className={`shrink-0 transition-transform duration-200 ${
+                      accountMenuOpen ? "rotate-180" : ""
                     }`}
                   />
+                </>
+              )}
+            </button>
 
-                  <AnimatePresence initial={false}>
-                    {!collapsed && (
-                      <motion.span
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -8 }}
-                        transition={{ duration: 0.18 }}
-                        className="whitespace-nowrap"
-                      >
-                        {item.name}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </button>
-              );
-            })}
-          </nav>
+            <AnimatePresence>
+              {accountMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.96 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className={`
+                    absolute bottom-[74px] z-50 overflow-hidden rounded-3xl
+                    border border-[var(--border)]
+                    bg-[var(--card)]/98 backdrop-blur-2xl
+                    shadow-[0_24px_80px_rgba(0,0,0,0.35)]
+                    ${isMobile ? "left-0 w-full" : compact ? "left-0 w-[260px]" : "left-0 w-full"}
+                  `}
+                >
+                  <div className="px-4 py-4 border-b border-[var(--border)]">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[var(--primary)]">
+                        <UserCircle2 size={22} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-[var(--text)]">
+                          {displayName}
+                        </p>
+                        <p className="truncate text-xs text-[var(--text)]/55">
+                          Signed in
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-          <div className="pt-3" />
+                  <div className="p-2">
+                    <p className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--text)]/45">
+                      Theme
+                    </p>
+
+                    <button
+  onClick={() => setDark((prev) => !prev)}
+  className="flex w-full items-center justify-between px-3 py-3 rounded-2xl text-sm font-medium 
+  transition-colors duration-200 hover:bg-[var(--bg)]/70"
+>
+  {/* Label */}
+  <span className="text-[var(--text)]">
+    {dark ? "Dark mode" : "Light mode"}
+  </span>
+
+  {/* Toggle */}
+  <div
+    className={`
+      relative w-11 h-6 rounded-full border border-[var(--border)]
+      transition-colors duration-300
+      ${dark ? "bg-[var(--bg)]" : "bg-[var(--card)]"}
+    `}
+  >
+    <motion.div
+      initial={false}
+      animate={{ x: dark ? 20 : 2 }}
+      transition={{
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+        mass: 0.8,
+      }}
+      className="absolute top-[2px] w-5 h-5 rounded-full 
+      bg-[var(--text)] shadow-sm"
+    />
+  </div>
+</button>
+                  </div>
+
+                  <div className="px-2 pb-2">
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-[var(--text)]/80 transition-all duration-200 hover:bg-red-500/10 hover:text-red-300"
+                    >
+                      <LogOut size={18} />
+                      Log out
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </motion.aside>
-    </>
+      </div>
+    </motion.aside>
   );
 }
