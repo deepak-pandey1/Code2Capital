@@ -1,5 +1,6 @@
 "use client";
 
+import { FiTrendingUp } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DailyQuote from "@/components/common/DailyQuote";
@@ -195,7 +196,7 @@ function getISTTime() {
     timeZone: "Asia/Kolkata",
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
+    // second: "2-digit",
     hour12: true,
   }).format(new Date());
 }
@@ -237,7 +238,7 @@ export default function Dashboard() {
     const id = setInterval(() => {
       setTime(getISTTime());
       setActiveSessions(getActiveSessions());
-    }, 1000);
+    }, 60000);
     return () => clearInterval(id);
   }, []);
 
@@ -245,6 +246,8 @@ export default function Dashboard() {
   const [ruleText, setRuleText]   = useState("");
   const [savedRule, setSavedRule] = useState(null);
   const [editing, setEditing]     = useState(false);
+  const [lang, setLang] = useState("EN");
+  
 
   useEffect(() => {
     fetch("/api/core-rule")
@@ -286,7 +289,9 @@ export default function Dashboard() {
           padding: "clamp(24px, 5vw, 48px) clamp(16px, 4vw, 40px)",
           display: "flex",
           flexDirection: "column",
-          gap: 28,
+          gap: 20,
+           padding: "2px 26px",
+           
         }}
       >
 
@@ -307,17 +312,27 @@ export default function Dashboard() {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <motion.div
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                style={{
-                  width: 16, height: 16,
-                  borderRadius: "50%",
-                  border: "1.5px solid var(--primary)",
-                  borderTopColor: "transparent",
-                  display: "inline-block",
-                  opacity: 0.55,
-                }}
-              />
+  animate={{ rotate: [0, 5, -5, 0] }}
+  transition={{
+    duration: 3,
+    repeat: Infinity,
+    ease: "easeInOut",
+  }}
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }}
+>
+  <FiTrendingUp
+    size={16}
+    style={{
+      color: "var(--primary)",
+      opacity: 0.85,
+      filter: "drop-shadow(0 0 4px rgba(0,0,0,0.2))",
+    }}
+  />
+</motion.div>
               <span style={{
                 fontSize: "9px", fontWeight: 800,
                 letterSpacing: "0.35em", textTransform: "uppercase",
@@ -359,10 +374,7 @@ export default function Dashboard() {
               fontVariantNumeric: "tabular-nums",
             }}>
               {time}
-            </span>
-            <span style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", opacity: 0.3, textTransform: "uppercase" }}>
-              IST
-            </span>
+            </span>           
             <motion.span
               animate={{ opacity: [1, 0.15, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
@@ -402,22 +414,63 @@ export default function Dashboard() {
               transformOrigin: "top",
             }}
           />
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingLeft: 6 }}>
-            <motion.div
-              animate={{ rotate: [0, 20, -20, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, repeatDelay: 5 }}
-            >
-              <Zap size={13} color="var(--primary)" strokeWidth={2.5} />
-            </motion.div>
-            <span style={{
-              fontSize: "9px", fontWeight: 800, letterSpacing: "0.14em",
-              textTransform: "uppercase", opacity: 0.4,
-            }}>
-              Daily Insight
-            </span>
-          </div>
+          <div style={{ 
+  display: "flex", 
+  alignItems: "center", 
+  justifyContent: "space-between",
+  marginBottom: 10, 
+  paddingLeft: 6 
+}}>
+
+  {/* LEFT SIDE (icon + text) */}
+  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <motion.div
+      animate={{ rotate: [0, 20, -20, 0] }}
+      transition={{ duration: 3.5, repeat: Infinity, repeatDelay: 5 }}
+    >
+      <Zap size={13} color="var(--primary)" strokeWidth={2.5} />
+    </motion.div>
+
+    <span style={{
+      fontSize: "9px",
+      fontWeight: 800,
+      letterSpacing: "0.14em",
+      textTransform: "uppercase",
+      opacity: 0.4,
+    }}>
+      Daily Insight
+    </span>
+  </div>
+
+  {/* RIGHT SIDE (toggle) */}
+  <div style={{ display: "flex", gap: 6 }}>
+    {["EN", "HN"].map((l) => (
+      <motion.button
+        key={l}
+        onClick={() => setLang(l)}
+        whileTap={{ scale: 0.95 }}
+        animate={{
+          background: lang === l ? "var(--primary)" : "transparent",
+          color: lang === l ? "#000" : "var(--text)",
+        }}
+        transition={{ duration: 0.25 }}
+        style={{
+          padding: "4px 10px",
+          fontSize: "10px",
+          borderRadius: "20px",
+          border: "1px solid var(--border)",
+          cursor: "pointer",
+          fontWeight: 700,
+        }}
+      >
+        {l}
+      </motion.button>
+    ))}
+  </div>
+
+</div>
           <div style={{ paddingLeft: 6 }}>
-            <DailyQuote />
+            <DailyQuote lang={lang} />
           </div>
         </motion.div>
 
