@@ -1,109 +1,261 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import DailyQuote from "@/components/common/DailyQuote";
 import {
-  Clock3,
-  Calculator,
-  Sparkles,
-  Plus,
+  Clock,
   PencilLine,
-  Trash2,
+  Plus,
   Save,
   X,
+  Trash2,
+  Globe,
+  Zap,
+  BookMarked,
+  Activity,
 } from "lucide-react";
 
-/* ---------- PREMIUM SMALL CARD ---------- */
-const SectionCard = ({ title, icon: Icon, children }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    whileHover={{ y: -2 }}
-    transition={{ duration: 0.2 }}
-    className="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm"
-  >
-    <div className="flex items-center gap-2 px-4 pt-4">
-      <div className="h-8 w-8 flex items-center justify-center rounded-xl bg-[rgba(34,197,94,0.08)] border border-[var(--border)]">
-        <Icon className="h-4 w-4 text-[var(--primary)]" />
-      </div>
-      <h2 className="text-sm font-semibold">{title}</h2>
+/* ═══════════════════════════════════════════════════
+   AMBIENT BACKGROUND
+═══════════════════════════════════════════════════ */
+function AmbientBackground() {
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+        overflow: "hidden",
+      }}
+    >
+      <motion.div
+        animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          position: "absolute",
+          top: "-25%", left: "-15%",
+          width: "65vw", height: "65vw",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(34,197,94,0.09) 0%, transparent 65%)",
+          filter: "blur(45px)",
+        }}
+      />
+      <motion.div
+        animate={{ scale: [1, 1.12, 1], opacity: [0.4, 0.75, 0.4] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+        style={{
+          position: "absolute",
+          bottom: "-20%", right: "-10%",
+          width: "50vw", height: "50vw",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(34,197,94,0.06) 0%, transparent 65%)",
+          filter: "blur(60px)",
+        }}
+      />
+      <svg
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.13 }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <pattern id="dots" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+            <circle cx="1.5" cy="1.5" r="1.2" fill="var(--primary)" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#dots)" />
+      </svg>
     </div>
-    <div className="px-4 pb-4 pt-3">{children}</div>
-  </motion.div>
-);
+  );
+}
 
-/* ---------- TIME + SESSION ---------- */
+/* ═══════════════════════════════════════════════════
+   PREMIUM CARD
+═══════════════════════════════════════════════════ */
+function Card({ children, delay = 0, style = {} }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -3, transition: { duration: 0.22 } }}
+      style={{
+        position: "relative",
+        borderRadius: "22px",
+        border: "1px solid var(--border)",
+        background: "var(--card)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        overflow: "hidden",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.1), 0 0 0 0.5px rgba(255,255,255,0.04) inset",
+        ...style,
+      }}
+    >
+      {/* top shimmer line */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: 0, left: "8%", width: "84%", height: "1px",
+          background: "linear-gradient(90deg, transparent, rgba(34,197,94,0.4), transparent)",
+          pointerEvents: "none",
+        }}
+      />
+      {children}
+    </motion.div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   CARD HEADER
+═══════════════════════════════════════════════════ */
+function CardHeader({ icon: Icon, title, badge }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "20px 22px 16px",
+        borderBottom: "1px solid var(--border)",
+        marginBottom: 0,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+        <motion.div
+          whileHover={{ rotate: 12, scale: 1.12 }}
+          transition={{ type: "spring", stiffness: 280, damping: 18 }}
+          style={{
+            width: 36, height: 36,
+            borderRadius: "11px",
+            background: "rgba(34,197,94,0.1)",
+            border: "1px solid rgba(34,197,94,0.22)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <Icon size={15} color="var(--primary)" strokeWidth={2.2} />
+        </motion.div>
+        <span
+          style={{
+            fontSize: "11px",
+            fontWeight: 700,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            opacity: 0.6,
+          }}
+        >
+          {title}
+        </span>
+      </div>
+      {badge && (
+        <motion.div
+          animate={{ opacity: [0.65, 1, 0.65] }}
+          transition={{ duration: 2.2, repeat: Infinity }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            padding: "4px 10px",
+            borderRadius: "20px",
+            background: "rgba(34,197,94,0.09)",
+            border: "1px solid rgba(34,197,94,0.22)",
+            fontSize: "9px",
+            fontWeight: 800,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "var(--primary)",
+          }}
+        >
+          <motion.span
+            animate={{ scale: [1, 1.6, 1] }}
+            transition={{ duration: 1.3, repeat: Infinity }}
+            style={{
+              width: 5, height: 5,
+              borderRadius: "50%",
+              background: "var(--primary)",
+              display: "inline-block",
+            }}
+          />
+          {badge}
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════ */
 function getISTTime() {
   return new Intl.DateTimeFormat("en-IN", {
     timeZone: "Asia/Kolkata",
-    hour: "numeric",
+    hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
     hour12: true,
   }).format(new Date());
 }
 
 function getActiveSessions() {
-  const now = new Date();
   const parts = new Intl.DateTimeFormat("en-IN", {
     timeZone: "Asia/Kolkata",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  }).formatToParts(now);
-
-  const h = Number(parts.find((p) => p.type === "hour")?.value || 0);
-  const m = Number(parts.find((p) => p.type === "minute")?.value || 0);
-  const current = h * 60 + m;
-
-  const inRange = (s, e) =>
-    s <= e ? current >= s && current < e : current >= s || current < e;
-
-  const sessions = [
-    { name: "Sydney", s: 210, e: 750 },
-    { name: "Tokyo", s: 330, e: 870 },
-    { name: "London", s: 810, e: 1350 },
-    { name: "New York", s: 1110, e: 210 },
-  ];
-
-  return sessions.filter((x) => inRange(x.s, x.e)).map((x) => x.name);
+  }).formatToParts(new Date());
+  const h = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
+  const m = Number(parts.find((p) => p.type === "minute")?.value ?? 0);
+  const cur = h * 60 + m;
+  const inRange = (s, e) => (s <= e ? cur >= s && cur < e : cur >= s || cur < e);
+  return [
+    { name: "Sydney",   s: 210,  e: 750  },
+    { name: "Tokyo",    s: 330,  e: 870  },
+    { name: "London",   s: 810,  e: 1350 },
+    { name: "New York", s: 1110, e: 210  },
+  ].filter((x) => inRange(x.s, x.e)).map((x) => x.name);
 }
 
-/* ---------- MAIN ---------- */
+const SESSIONS = [
+  { name: "Sydney",   open: "3:30 AM",  flag: "🇦🇺", tz: "AEST" },
+  { name: "Tokyo",    open: "5:30 AM",  flag: "🇯🇵", tz: "JST"  },
+  { name: "London",   open: "1:30 PM",  flag: "🇬🇧", tz: "GMT"  },
+  { name: "New York", open: "6:30 PM",  flag: "🇺🇸", tz: "EST"  },
+];
+
+/* ═══════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════ */
 export default function Dashboard() {
-  const istTime = useMemo(() => getISTTime(), []);
-  const activeSessions = useMemo(() => getActiveSessions(), []);
+  const [time, setTime] = useState(getISTTime());
+  const [activeSessions, setActiveSessions] = useState(getActiveSessions());
 
-  /* ---------- CALCULATOR ---------- */
-  const [accountSize, setAccountSize] = useState("10000");
-  const [riskPercent, setRiskPercent] = useState("1");
-  const [sl, setSl] = useState("20");
-  const [pip, setPip] = useState("10");
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTime(getISTTime());
+      setActiveSessions(getActiveSessions());
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
 
-  const riskAmount = (accountSize * riskPercent) / 100;
-  const lot = riskAmount / (sl * pip || 1);
-  const units = lot * 100000;
-
-  /* ---------- CORE RULE ---------- */
-  const [ruleText, setRuleText] = useState("");
+  /* core rule */
+  const [ruleText, setRuleText]   = useState("");
   const [savedRule, setSavedRule] = useState(null);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing]     = useState(false);
 
   useEffect(() => {
     fetch("/api/core-rule")
-      .then((res) => res.json())
-      .then((d) => {
-        if (d?.rule) {
-          setSavedRule(d.rule);
-          setRuleText(d.rule.text);
-        }
-      });
+      .then((r) => r.json())
+      .then((d) => { if (d?.rule) { setSavedRule(d.rule); setRuleText(d.rule.text); } })
+      .catch(() => {});
   }, []);
 
   const saveRule = async () => {
-    const method = savedRule ? "PUT" : "POST";
-    const res = await fetch("/api/core-rule", {
-      method,
+    const res  = await fetch("/api/core-rule", {
+      method: savedRule ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text: ruleText }),
     });
@@ -118,200 +270,610 @@ export default function Dashboard() {
     setRuleText("");
   };
 
+  const activeCount = activeSessions.length;
+
+  /* ─── RENDER ─── */
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] px-4 py-5 md:px-8">
-      <div className="max-w-6xl mx-auto space-y-5">
-        
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row justify-between gap-3">
+    <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", position: "relative" }}>
+      <AmbientBackground />
+
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          maxWidth: 1080,
+          margin: "0 auto",
+          padding: "clamp(24px, 5vw, 48px) clamp(16px, 4vw, 40px)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 28,
+        }}
+      >
+
+        {/* ── HEADER ── */}
+        <motion.header
+          initial={{ opacity: 0, y: -22 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+          }}
+        >
+          {/* wordmark */}
           <div>
-            <p className="text-[10px] tracking-[0.3em] text-[var(--primary)] uppercase">
-              Trading Workspace
-            </p>
-            <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
-          </div>
-
-          <div className="text-sm border border-[var(--border)] px-3 py-2 rounded-xl">
-            {istTime}
-          </div>
-        </div>
-
-        {/* MOTIVATION (TOP STRIP) */}
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-          <DailyQuote />
-        </div>
-
-        {/* GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-
-          {/* SESSION */}
-          <SectionCard title="Active Session" icon={Clock3}>
-  <div className="space-y-3">
-
-    {/* ACTIVE NOW */}
-    <div className="flex flex-wrap gap-2">
-      {activeSessions.length > 0 ? (
-        activeSessions.map((s, i) => (
-          <motion.div
-            key={s}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            whileHover={{ scale: 1.05 }}
-            className="relative px-3 py-1.5 rounded-full text-xs font-medium 
-            bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20 
-            flex items-center gap-2 overflow-hidden"
-          >
-            {/* glowing pulse */}
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-60"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--primary)]"></span>
-            </span>
-
-            {s}
-          </motion.div>
-        ))
-      ) : (
-        <p className="text-xs text-[var(--text)]/60">
-          Low activity period
-        </p>
-      )}
-    </div>
-
-    {/* SESSION CARDS */}
-    <div className="grid grid-cols-2 gap-2">
-      {[
-        { name: "Sydney", time: "3:30 AM" },
-        { name: "Tokyo", time: "5:30 AM" },
-        { name: "London", time: "1:30 PM" },
-        { name: "New York", time: "6:30 PM" },
-      ].map((s, i) => {
-        const active = activeSessions.includes(s.name);
-
-        return (
-          <motion.div
-            key={s.name}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            whileHover={{ y: -3 }}
-            className={`relative rounded-xl p-3 border transition-all
-            ${
-              active
-                ? "border-[var(--primary)]/40 bg-[var(--primary)]/10 shadow-[0_0_12px_rgba(34,197,94,0.15)]"
-                : "border-[var(--border)] bg-[var(--bg)]/40"
-            }`}
-          >
-            {/* ACTIVE DOT */}
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-semibold">{s.name}</span>
-
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  active ? "bg-[var(--primary)]" : "bg-gray-300"
-                }`}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                style={{
+                  width: 16, height: 16,
+                  borderRadius: "50%",
+                  border: "1.5px solid var(--primary)",
+                  borderTopColor: "transparent",
+                  display: "inline-block",
+                  opacity: 0.55,
+                }}
               />
+              <span style={{
+                fontSize: "9px", fontWeight: 800,
+                letterSpacing: "0.35em", textTransform: "uppercase",
+                color: "var(--primary)", opacity: 0.75,
+              }}>
+                Trading Workspace
+              </span>
             </div>
+            <h1 style={{
+              margin: 0,
+              fontSize: "clamp(26px, 4vw, 40px)",
+              fontWeight: 800,
+              letterSpacing: "-0.04em",
+              lineHeight: 1.05,
+            }}>
+              Dashboard
+            </h1>
+          </div>
 
-            {/* TIME */}
-            <p className="text-[11px] mt-1 text-[var(--text)]/60">
-              {s.time}
-            </p>
-
-            {/* subtle glow line */}
-            {active && (
-              <div className="absolute bottom-0 left-0 h-[2px] w-full bg-[var(--primary)] opacity-60 rounded-full"></div>
-            )}
+          {/* live clock */}
+          <motion.div
+            whileHover={{ scale: 1.03 }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "12px 20px",
+              borderRadius: "16px",
+              border: "1px solid var(--border)",
+              background: "var(--card)",
+              backdropFilter: "blur(12px)",
+              boxShadow: "0 0 0 0.5px rgba(34,197,94,0.1) inset",
+            }}
+          >
+            <Clock size={13} color="var(--primary)" strokeWidth={2.5} />
+            <span style={{
+              fontSize: "14px", fontWeight: 700,
+              letterSpacing: "0.05em",
+              fontVariantNumeric: "tabular-nums",
+            }}>
+              {time}
+            </span>
+            <span style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", opacity: 0.3, textTransform: "uppercase" }}>
+              IST
+            </span>
+            <motion.span
+              animate={{ opacity: [1, 0.15, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+              style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--primary)", display: "inline-block" }}
+            />
           </motion.div>
-        );
-      })}
-    </div>
+        </motion.header>
 
-  </div>
-</SectionCard>
+        {/* ── QUOTE STRIP ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            position: "relative",
+            borderRadius: "18px",
+            border: "1px solid var(--border)",
+            background: "var(--card)",
+            backdropFilter: "blur(12px)",
+            padding: "18px 26px",
+            overflow: "hidden",
+          }}
+        >
+          <div aria-hidden style={{
+            position: "absolute", top: 0, left: "8%", width: "84%", height: "1px",
+            background: "linear-gradient(90deg, transparent, rgba(34,197,94,0.4), transparent)",
+          }} />
+          <motion.div
+            initial={{ scaleY: 0 }}
+            animate={{ scaleY: 1 }}
+            transition={{ duration: 0.55, delay: 0.35 }}
+            style={{
+              position: "absolute", left: 0, top: "10%",
+              height: "80%", width: 3,
+              borderRadius: "0 4px 4px 0",
+              background: "linear-gradient(180deg, transparent, var(--primary), transparent)",
+              transformOrigin: "top",
+            }}
+          />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingLeft: 6 }}>
+            <motion.div
+              animate={{ rotate: [0, 20, -20, 0] }}
+              transition={{ duration: 3.5, repeat: Infinity, repeatDelay: 5 }}
+            >
+              <Zap size={13} color="var(--primary)" strokeWidth={2.5} />
+            </motion.div>
+            <span style={{
+              fontSize: "9px", fontWeight: 800, letterSpacing: "0.14em",
+              textTransform: "uppercase", opacity: 0.4,
+            }}>
+              Daily Insight
+            </span>
+          </div>
+          <div style={{ paddingLeft: 6 }}>
+            <DailyQuote />
+          </div>
+        </motion.div>
 
-          {/* CALCULATOR */}
-          <SectionCard title="Position Size" icon={Calculator}>
-            <div className="space-y-2 text-sm">
-              <input
-                value={accountSize}
-                onChange={(e) => setAccountSize(e.target.value)}
-                placeholder="Account"
-                className="input"
-              />
-              <input
-                value={riskPercent}
-                onChange={(e) => setRiskPercent(e.target.value)}
-                placeholder="Risk %"
-                className="input"
-              />
-              <input
-                value={sl}
-                onChange={(e) => setSl(e.target.value)}
-                placeholder="SL pips"
-                className="input"
-              />
-              <input
-                value={pip}
-                onChange={(e) => setPip(e.target.value)}
-                placeholder="Pip value"
-                className="input"
-              />
+        {/* ── TWO-COLUMN GRID ── */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))",
+            gap: 20,
+            alignItems: "start",
+          }}
+        >
 
-              <div className="text-xs mt-2">
-                Risk: ${riskAmount.toFixed(2)} <br />
-                Lot: {lot.toFixed(2)} <br />
-                Units: {Math.round(units)}
+          {/* ══ CARD 1 — MARKET SESSIONS ══ */}
+          <Card delay={0.2}>
+            <CardHeader icon={Globe} title="Market Sessions" badge="Live" />
+            <div style={{ padding: "20px 22px 24px", display: "flex", flexDirection: "column", gap: 18 }}>
+
+              {/* active status summary */}
+              <motion.div
+                animate={{
+                  borderColor: activeCount > 0
+                    ? "rgba(34,197,94,0.25)"
+                    : "var(--border)",
+                }}
+                transition={{ duration: 0.5 }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 10,
+                  padding: "13px 16px",
+                  borderRadius: "14px",
+                  background: activeCount > 0 ? "rgba(34,197,94,0.06)" : "rgba(255,255,255,0.02)",
+                  border: `1px solid ${activeCount > 0 ? "rgba(34,197,94,0.22)" : "var(--border)"}`,
+                  transition: "background 0.4s, border-color 0.4s",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                  <Activity size={13} color="var(--primary)" strokeWidth={2.2} />
+                  <span style={{ fontSize: "12px", fontWeight: 600, opacity: 0.7 }}>
+                    {activeCount > 0
+                      ? `${activeCount} session${activeCount > 1 ? "s" : ""} currently open`
+                      : "All sessions closed"}
+                  </span>
+                </div>
+                <AnimatePresence>
+                  {activeCount > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      style={{ display: "flex", gap: 6, flexWrap: "wrap" }}
+                    >
+                      {activeSessions.map((s) => (
+                        <motion.span
+                          key={s}
+                          layout
+                          initial={{ scale: 0.7, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0.7, opacity: 0 }}
+                          style={{
+                            fontSize: "10px", fontWeight: 700,
+                            letterSpacing: "0.06em",
+                            padding: "3px 9px",
+                            borderRadius: "20px",
+                            background: "rgba(34,197,94,0.14)",
+                            color: "var(--primary)",
+                            border: "1px solid rgba(34,197,94,0.28)",
+                          }}
+                        >
+                          {s}
+                        </motion.span>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+
+              {/* 2×2 session tiles */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {SESSIONS.map((s, i) => {
+                  const isActive = activeSessions.includes(s.name);
+                  return (
+                    <motion.div
+                      key={s.name}
+                      initial={{ opacity: 0, scale: 0.92 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.42, delay: 0.24 + i * 0.07, ease: [0.16, 1, 0.3, 1] }}
+                      whileHover={{ y: -4, transition: { duration: 0.18 } }}
+                      style={{
+                        position: "relative",
+                        borderRadius: "16px",
+                        padding: "14px 15px",
+                        border: isActive
+                          ? "1px solid rgba(34,197,94,0.35)"
+                          : "1px solid var(--border)",
+                        background: isActive
+                          ? "rgba(34,197,94,0.07)"
+                          : "rgba(255,255,255,0.02)",
+                        boxShadow: isActive ? "0 0 24px rgba(34,197,94,0.12)" : "none",
+                        transition: "all 0.35s ease",
+                        overflow: "hidden",
+                        cursor: "default",
+                      }}
+                    >
+                      {/* flag + pulse dot */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 9 }}>
+                        <span style={{ fontSize: "22px", lineHeight: 1 }}>{s.flag}</span>
+                        <div style={{ position: "relative", width: 10, height: 10, marginTop: 2 }}>
+                          {isActive && (
+                            <motion.span
+                              animate={{ scale: [1, 2.2, 1], opacity: [0.45, 0, 0.45] }}
+                              transition={{ duration: 1.8, repeat: Infinity }}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                borderRadius: "50%",
+                                background: "var(--primary)",
+                              }}
+                            />
+                          )}
+                          <span style={{
+                            position: "absolute",
+                            inset: 1,
+                            borderRadius: "50%",
+                            background: isActive ? "var(--primary)" : "rgba(255,255,255,0.15)",
+                            transition: "background 0.3s",
+                          }} />
+                        </div>
+                      </div>
+                      {/* name */}
+                      <div style={{
+                        fontSize: "13px", fontWeight: 700,
+                        letterSpacing: "0.01em", marginBottom: 4,
+                      }}>
+                        {s.name}
+                      </div>
+                      {/* time + tz */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: "11px", opacity: 0.4, fontWeight: 600, letterSpacing: "0.03em" }}>
+                          {s.open}
+                        </span>
+                        <span style={{ fontSize: "9px", opacity: 0.28, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                          {s.tz}
+                        </span>
+                      </div>
+                      {/* active bottom glow bar */}
+                      <AnimatePresence>
+                        {isActive && (
+                          <motion.div
+                            key="glowbar"
+                            initial={{ scaleX: 0, opacity: 0 }}
+                            animate={{ scaleX: 1, opacity: 1 }}
+                            exit={{ scaleX: 0, opacity: 0 }}
+                            transition={{ duration: 0.55 }}
+                            style={{
+                              position: "absolute",
+                              bottom: 0, left: 0,
+                              height: 2, width: "100%",
+                              background: "linear-gradient(90deg, transparent, var(--primary), transparent)",
+                              transformOrigin: "left",
+                            }}
+                          />
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
-          </SectionCard>
+          </Card>
 
-          {/* CORE RULE */}
-          <SectionCard title="Core Rule" icon={PencilLine}>
-            <div className="group relative">
+          {/* ══ CARD 2 — CORE RULE ══ */}
+          <Card delay={0.28}>
+            <CardHeader icon={BookMarked} title="Core Rule" />
+            <div style={{ padding: "20px 22px 24px" }}>
+              <AnimatePresence mode="wait">
 
-              {!savedRule && !editing && (
-                <button
-                  onClick={() => setEditing(true)}
-                  className="w-full border border-dashed rounded-xl py-4 text-sm flex justify-center gap-2"
-                >
-                  <Plus size={14} /> Add rule
-                </button>
-              )}
+                {/* EMPTY */}
+                {!savedRule && !editing && (
+                  <motion.button
+                    key="empty"
+                    initial={{ opacity: 0, scale: 0.94 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.94 }}
+                    transition={{ duration: 0.3 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setEditing(true)}
+                    style={{
+                      width: "100%",
+                      minHeight: 164,
+                      border: "1px dashed rgba(34,197,94,0.3)",
+                      borderRadius: "16px",
+                      background: "rgba(34,197,94,0.03)",
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 13,
+                      color: "var(--text)",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    <motion.div
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+                      style={{
+                        width: 46, height: 46,
+                        borderRadius: "50%",
+                        background: "rgba(34,197,94,0.1)",
+                        border: "1px solid rgba(34,197,94,0.22)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Plus size={19} color="var(--primary)" strokeWidth={2.5} />
+                    </motion.div>
+                    <div style={{ textAlign: "center" }}>
+                      <p style={{ fontSize: "13px", fontWeight: 600, marginBottom: 4, opacity: 0.65 }}>
+                        Define your core rule
+                      </p>
+                      <p style={{ fontSize: "11px", opacity: 0.3 }}>
+                        Your trading constitution — one principle above all
+                      </p>
+                    </div>
+                  </motion.button>
+                )}
 
-              {editing && (
-                <>
-                  <textarea
-                    value={ruleText}
-                    onChange={(e) => setRuleText(e.target.value)}
-                    className="w-full border rounded-xl p-2 text-sm"
-                  />
-                  <div className="flex gap-2 mt-2">
-                    <button onClick={saveRule} className="btn-primary">
-                      Save
-                    </button>
-                    <button onClick={() => setEditing(false)}>
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              )}
+                {/* EDITING */}
+                {editing && (
+                  <motion.div
+                    key="editing"
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    style={{ display: "flex", flexDirection: "column", gap: 12 }}
+                  >
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 6,
+                      fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em",
+                      textTransform: "uppercase", opacity: 0.38, marginBottom: 2,
+                    }}>
+                      <PencilLine size={11} strokeWidth={2.5} />
+                      Composing
+                    </div>
+                    <textarea
+                      value={ruleText}
+                      onChange={(e) => setRuleText(e.target.value)}
+                      autoFocus
+                      placeholder="e.g. Never risk more than 1% per trade. Discipline over emotion."
+                      rows={5}
+                      style={{
+                        width: "100%",
+                        borderRadius: "14px",
+                        border: "1px solid rgba(34,197,94,0.35)",
+                        background: "rgba(34,197,94,0.04)",
+                        padding: "14px 16px",
+                        fontSize: "14px",
+                        lineHeight: 1.65,
+                        color: "var(--text)",
+                        outline: "none",
+                        resize: "vertical",
+                        fontFamily: "inherit",
+                        boxSizing: "border-box",
+                        transition: "border-color 0.2s, box-shadow 0.2s",
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = "rgba(34,197,94,0.6)";
+                        e.target.style.boxShadow = "0 0 0 3px rgba(34,197,94,0.08)";
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = "rgba(34,197,94,0.35)";
+                        e.target.style.boxShadow = "none";
+                      }}
+                    />
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={saveRule}
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 7,
+                          padding: "11px 0",
+                          borderRadius: "12px",
+                          background: "var(--primary)",
+                          color: "#000",
+                          fontWeight: 800,
+                          fontSize: "12px",
+                          letterSpacing: "0.07em",
+                          textTransform: "uppercase",
+                          border: "none",
+                          cursor: "pointer",
+                          boxShadow: "0 4px 22px rgba(34,197,94,0.3)",
+                        }}
+                      >
+                        <Save size={13} strokeWidth={2.5} />
+                        Save Rule
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => setEditing(false)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 6,
+                          padding: "11px 16px",
+                          borderRadius: "12px",
+                          background: "transparent",
+                          border: "1px solid var(--border)",
+                          color: "var(--text)",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          opacity: 0.5,
+                        }}
+                      >
+                        <X size={13} strokeWidth={2.5} />
+                        Cancel
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                )}
 
-              {savedRule && !editing && (
-                <>
-                  <p className="italic text-lg">“{savedRule.text}”</p>
+                {/* SAVED */}
+                {savedRule && !editing && (
+                  <motion.div
+                    key="saved"
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.35 }}
+                    style={{ display: "flex", flexDirection: "column", gap: 18 }}
+                  >
+                    {/* rule block */}
+                    <div style={{
+                      position: "relative",
+                      padding: "20px 20px 20px 24px",
+                      borderRadius: "16px",
+                      background: "rgba(34,197,94,0.04)",
+                      border: "1px solid rgba(34,197,94,0.15)",
+                      overflow: "hidden",
+                    }}>
+                      {/* accent bar */}
+                      <div style={{
+                        position: "absolute",
+                        left: 0, top: "10%",
+                        height: "80%", width: 3,
+                        borderRadius: "0 3px 3px 0",
+                        background: "linear-gradient(180deg, transparent, var(--primary), transparent)",
+                      }} />
+                      {/* decorative quote */}
+                      <div aria-hidden style={{
+                        position: "absolute",
+                        top: -8, right: 14,
+                        fontSize: "80px", lineHeight: 1,
+                        fontFamily: "Georgia, serif",
+                        color: "var(--primary)",
+                        opacity: 0.08,
+                        userSelect: "none",
+                        pointerEvents: "none",
+                      }}>
+                        "
+                      </div>
+                      <p style={{
+                        fontSize: "15px",
+                        fontStyle: "italic",
+                        lineHeight: 1.78,
+                        opacity: 0.85,
+                        margin: 0,
+                        position: "relative",
+                        zIndex: 1,
+                      }}>
+                        {savedRule.text}
+                      </p>
+                    </div>
 
-                  {/* HOVER BUTTONS */}
-                  <div className="opacity-0 group-hover:opacity-100 transition absolute top-0 right-0 flex gap-2">
-                    <button onClick={() => setEditing(true)}>Edit</button>
-                    <button onClick={deleteRule}>Delete</button>
-                  </div>
-                </>
-              )}
+                    {/* action row */}
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: 10,
+                    }}>
+                      <div style={{
+                        display: "flex", alignItems: "center", gap: 5,
+                        fontSize: "10px", opacity: 0.28,
+                        fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase",
+                      }}>
+                        <BookMarked size={10} strokeWidth={2.5} />
+                        Your constitution
+                      </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <motion.button
+                          whileHover={{ scale: 1.06 }}
+                          whileTap={{ scale: 0.94 }}
+                          onClick={() => setEditing(true)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 5,
+                            padding: "7px 14px",
+                            borderRadius: "10px",
+                            border: "1px solid var(--border)",
+                            background: "transparent",
+                            color: "var(--text)",
+                            fontSize: "11px", fontWeight: 700,
+                            cursor: "pointer",
+                            letterSpacing: "0.04em",
+                            opacity: 0.55,
+                          }}
+                        >
+                          <PencilLine size={11} strokeWidth={2.5} />
+                          Edit
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.06 }}
+                          whileTap={{ scale: 0.94 }}
+                          onClick={deleteRule}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 5,
+                            padding: "7px 14px",
+                            borderRadius: "10px",
+                            border: "1px solid rgba(239,68,68,0.25)",
+                            background: "rgba(239,68,68,0.05)",
+                            color: "#ef4444",
+                            fontSize: "11px", fontWeight: 700,
+                            cursor: "pointer",
+                            letterSpacing: "0.04em",
+                          }}
+                        >
+                          <Trash2 size={11} strokeWidth={2.5} />
+                          Delete
+                        </motion.button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+              </AnimatePresence>
             </div>
-          </SectionCard>
+          </Card>
 
         </div>
+        {/* end grid */}
+
       </div>
     </div>
   );
