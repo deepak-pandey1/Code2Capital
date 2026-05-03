@@ -1,10 +1,19 @@
 import connectDB from "@/lib/mongodb";
 import CoreRule from "@/models/CoreRule";
 
-export async function GET() {
+export async function GET(request) {
   try {
     await connectDB();
-    const rule = await CoreRule.findOne().sort({ createdAt: -1 });
+
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
+
+    if (!userId) {
+      return Response.json({ message: "userId is required" }, { status: 400 });
+    }
+
+    const rule = await CoreRule.findOne({ userId }).sort({ createdAt: -1 });
+
     return Response.json({ rule });
   } catch (error) {
     return Response.json(
@@ -17,9 +26,14 @@ export async function GET() {
 export async function POST(request) {
   try {
     await connectDB();
-    const { text } = await request.json();
+    const { text, userId } = await request.json();
 
-    const rule = await CoreRule.create({ text });
+    if (!userId) {
+      return Response.json({ message: "userId is required" }, { status: 400 });
+    }
+
+    const rule = await CoreRule.create({ text, userId });
+
     return Response.json({ rule }, { status: 201 });
   } catch (error) {
     return Response.json(
@@ -32,12 +46,16 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     await connectDB();
-    const { text } = await request.json();
+    const { text, userId } = await request.json();
 
-    const existing = await CoreRule.findOne().sort({ createdAt: -1 });
+    if (!userId) {
+      return Response.json({ message: "userId is required" }, { status: 400 });
+    }
+
+    const existing = await CoreRule.findOne({ userId }).sort({ createdAt: -1 });
 
     if (!existing) {
-      const rule = await CoreRule.create({ text });
+      const rule = await CoreRule.create({ text, userId });
       return Response.json({ rule }, { status: 201 });
     }
 
@@ -56,12 +74,16 @@ export async function PUT(request) {
 export async function DELETE(request) {
   try {
     await connectDB();
-    const { id } = await request.json();
+    const { id, userId } = await request.json();
+
+    if (!userId) {
+      return Response.json({ message: "userId is required" }, { status: 400 });
+    }
 
     if (id) {
-      await CoreRule.findByIdAndDelete(id);
+      await CoreRule.findOneAndDelete({ _id: id, userId });
     } else {
-      const existing = await CoreRule.findOne().sort({ createdAt: -1 });
+      const existing = await CoreRule.findOne({ userId }).sort({ createdAt: -1 });
       if (existing) await CoreRule.findByIdAndDelete(existing._id);
     }
 
