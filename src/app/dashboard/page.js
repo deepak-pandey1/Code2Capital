@@ -11,11 +11,10 @@ import {
   Save,
   X,
   Trash2,
-  Globe,
   Zap,
   BookMarked,
-  Activity,
 } from "lucide-react";
+import WatchlistPanel from "@/components/dashboard/WatchlistPanel";
 
 /* ═══════════════════════════════════════════════════
    AMBIENT BACKGROUND
@@ -201,43 +200,15 @@ function getISTTime() {
   }).format(new Date());
 }
 
-function getActiveSessions() {
-  const parts = new Intl.DateTimeFormat("en-IN", {
-    timeZone: "Asia/Kolkata",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(new Date());
-  const h = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
-  const m = Number(parts.find((p) => p.type === "minute")?.value ?? 0);
-  const cur = h * 60 + m;
-  const inRange = (s, e) => (s <= e ? cur >= s && cur < e : cur >= s || cur < e);
-  return [
-    { name: "Sydney",   s: 210,  e: 750  },
-    { name: "Tokyo",    s: 330,  e: 870  },
-    { name: "London",   s: 810,  e: 1350 },
-    { name: "New York", s: 1110, e: 210  },
-  ].filter((x) => inRange(x.s, x.e)).map((x) => x.name);
-}
-
-const SESSIONS = [
-  { name: "Sydney",   open: "3:30 AM",  flag: "🇦🇺", tz: "AEST" },
-  { name: "Tokyo",    open: "5:30 AM",  flag: "🇯🇵", tz: "JST"  },
-  { name: "London",   open: "1:30 PM",  flag: "🇬🇧", tz: "GMT"  },
-  { name: "New York", open: "6:30 PM",  flag: "🇺🇸", tz: "EST"  },
-];
-
 /* ═══════════════════════════════════════════════════
    DASHBOARD
 ═══════════════════════════════════════════════════ */
 export default function Dashboard() {
   const [time, setTime] = useState(getISTTime());
-  const [activeSessions, setActiveSessions] = useState(getActiveSessions());
 
   useEffect(() => {
     const id = setInterval(() => {
       setTime(getISTTime());
-      setActiveSessions(getActiveSessions());
     }, 60000);
     return () => clearInterval(id);
   }, []);
@@ -272,8 +243,6 @@ export default function Dashboard() {
     setSavedRule(null);
     setRuleText("");
   };
-
-  const activeCount = activeSessions.length;
 
   /* ─── RENDER ─── */
   return (
@@ -484,166 +453,8 @@ export default function Dashboard() {
           }}
         >
 
-          {/* ══ CARD 1 — MARKET SESSIONS ══ */}
-          <Card delay={0.2}>
-            <CardHeader icon={Globe} title="Market Sessions" badge="Live" />
-            <div style={{ padding: "20px 22px 24px", display: "flex", flexDirection: "column", gap: 18 }}>
+          <WatchlistPanel />
 
-              {/* active status summary */}
-              <motion.div
-                animate={{
-                  borderColor: activeCount > 0
-                    ? "rgba(34,197,94,0.25)"
-                    : "var(--border)",
-                }}
-                transition={{ duration: 0.5 }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
-                  gap: 10,
-                  padding: "13px 16px",
-                  borderRadius: "14px",
-                  background: activeCount > 0 ? "rgba(34,197,94,0.06)" : "rgba(255,255,255,0.02)",
-                  border: `1px solid ${activeCount > 0 ? "rgba(34,197,94,0.22)" : "var(--border)"}`,
-                  transition: "background 0.4s, border-color 0.4s",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                  <Activity size={13} color="var(--primary)" strokeWidth={2.2} />
-                  <span style={{ fontSize: "12px", fontWeight: 600, opacity: 0.7 }}>
-                    {activeCount > 0
-                      ? `${activeCount} session${activeCount > 1 ? "s" : ""} currently open`
-                      : "All sessions closed"}
-                  </span>
-                </div>
-                <AnimatePresence>
-                  {activeCount > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      style={{ display: "flex", gap: 6, flexWrap: "wrap" }}
-                    >
-                      {activeSessions.map((s) => (
-                        <motion.span
-                          key={s}
-                          layout
-                          initial={{ scale: 0.7, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0.7, opacity: 0 }}
-                          style={{
-                            fontSize: "10px", fontWeight: 700,
-                            letterSpacing: "0.06em",
-                            padding: "3px 9px",
-                            borderRadius: "20px",
-                            background: "rgba(34,197,94,0.14)",
-                            color: "var(--primary)",
-                            border: "1px solid rgba(34,197,94,0.28)",
-                          }}
-                        >
-                          {s}
-                        </motion.span>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-
-              {/* 2×2 session tiles */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {SESSIONS.map((s, i) => {
-                  const isActive = activeSessions.includes(s.name);
-                  return (
-                    <motion.div
-                      key={s.name}
-                      initial={{ opacity: 0, scale: 0.92 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.42, delay: 0.24 + i * 0.07, ease: [0.16, 1, 0.3, 1] }}
-                      whileHover={{ y: -4, transition: { duration: 0.18 } }}
-                      style={{
-                        position: "relative",
-                        borderRadius: "16px",
-                        padding: "14px 15px",
-                        border: isActive
-                          ? "1px solid rgba(34,197,94,0.35)"
-                          : "1px solid var(--border)",
-                        background: isActive
-                          ? "rgba(34,197,94,0.07)"
-                          : "rgba(255,255,255,0.02)",
-                        boxShadow: isActive ? "0 0 24px rgba(34,197,94,0.12)" : "none",
-                        transition: "all 0.35s ease",
-                        overflow: "hidden",
-                        cursor: "default",
-                      }}
-                    >
-                      {/* flag + pulse dot */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 9 }}>
-                        <span style={{ fontSize: "22px", lineHeight: 1 }}>{s.flag}</span>
-                        <div style={{ position: "relative", width: 10, height: 10, marginTop: 2 }}>
-                          {isActive && (
-                            <motion.span
-                              animate={{ scale: [1, 2.2, 1], opacity: [0.45, 0, 0.45] }}
-                              transition={{ duration: 1.8, repeat: Infinity }}
-                              style={{
-                                position: "absolute",
-                                inset: 0,
-                                borderRadius: "50%",
-                                background: "var(--primary)",
-                              }}
-                            />
-                          )}
-                          <span style={{
-                            position: "absolute",
-                            inset: 1,
-                            borderRadius: "50%",
-                            background: isActive ? "var(--primary)" : "rgba(255,255,255,0.15)",
-                            transition: "background 0.3s",
-                          }} />
-                        </div>
-                      </div>
-                      {/* name */}
-                      <div style={{
-                        fontSize: "13px", fontWeight: 700,
-                        letterSpacing: "0.01em", marginBottom: 4,
-                      }}>
-                        {s.name}
-                      </div>
-                      {/* time + tz */}
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <span style={{ fontSize: "11px", opacity: 0.4, fontWeight: 600, letterSpacing: "0.03em" }}>
-                          {s.open}
-                        </span>
-                        <span style={{ fontSize: "9px", opacity: 0.28, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                          {s.tz}
-                        </span>
-                      </div>
-                      {/* active bottom glow bar */}
-                      <AnimatePresence>
-                        {isActive && (
-                          <motion.div
-                            key="glowbar"
-                            initial={{ scaleX: 0, opacity: 0 }}
-                            animate={{ scaleX: 1, opacity: 1 }}
-                            exit={{ scaleX: 0, opacity: 0 }}
-                            transition={{ duration: 0.55 }}
-                            style={{
-                              position: "absolute",
-                              bottom: 0, left: 0,
-                              height: 2, width: "100%",
-                              background: "linear-gradient(90deg, transparent, var(--primary), transparent)",
-                              transformOrigin: "left",
-                            }}
-                          />
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-          </Card>
 
           {/* ══ CARD 2 — CORE RULE ══ */}
           <Card delay={0.28}>
