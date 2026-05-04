@@ -1,20 +1,10 @@
 "use client";
-
 import { onAuthStateChanged } from "firebase/auth";
 import { FiTrendingUp } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import DailyQuote from "@/components/common/DailyQuote";
-import {
-  Clock,
-  PencilLine,
-  Plus,
-  Save,
-  X,
-  Trash2,
-  Zap,
-  BookMarked,
-} from "lucide-react";
+import { PencilLine, Plus, Save, X, Trash2, Zap, BookMarked, } from "lucide-react";
 import RecentNewsPanel from "@/components/dashboard/RecentNewsPanel";
 import { auth } from "@/lib/firebase";
 
@@ -177,30 +167,11 @@ function CardHeader({ icon: Icon, title, badge }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   HELPERS
-═══════════════════════════════════════════════════ */
-function getISTTime() {
-  return new Intl.DateTimeFormat("en-IN", {
-    timeZone: "Asia/Kolkata",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date());
-}
 
 /* ═══════════════════════════════════════════════════
    DASHBOARD
 ═══════════════════════════════════════════════════ */
 export default function Dashboard() {
-  const [time, setTime] = useState(getISTTime());
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setTime(getISTTime());
-    }, 60000);
-    return () => clearInterval(id);
-  }, []);
 
   const [ruleText, setRuleText] = useState("");
   const [savedRule, setSavedRule] = useState(null);
@@ -392,39 +363,6 @@ export default function Dashboard() {
             </h1>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "12px 20px",
-              borderRadius: "16px",
-              border: "1px solid var(--border)",
-              background: "var(--card)",
-              boxShadow: "0 0 0 0.5px rgba(34,197,94,0.1) inset",
-            }}
-          >
-            <Clock size={13} color="var(--primary)" strokeWidth={2.5} />
-            <span
-              style={{
-                fontSize: "14px",
-                fontWeight: 700,
-                letterSpacing: "0.05em",
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              {time}
-            </span>
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: "var(--primary)",
-                display: "inline-block",
-              }}
-            />
-          </div>
         </header>
 
         <div
