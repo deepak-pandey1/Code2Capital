@@ -430,9 +430,11 @@ const deleteRule = async () => {
             alignItems: "stretch",
           }}
         >
-          <div style={{ minWidth: 0, height: "100%", display: "flex" }}>
-            <RecentNewsPanel />
-          </div>
+          <div style={{ minWidth: 0, height: "100%", display: "flex", width: "100%" }}>
+  <div style={{ width: "100%", minWidth: 0, flex: 1, alignSelf: "stretch" }}>
+    <RecentNewsPanel />
+  </div>
+</div>
 
           <Card delay={0.08}>
             <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
