@@ -17,8 +17,9 @@ import { convertToHinglish } from "@/utils/convertToHinglish";
 function timeAgo(dateString) {
   if (!dateString) return "";
   const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
   const now = new Date();
-  const diff = now - date;
+  const diff = Math.max(0, now - date);
 
   const mins = Math.floor(diff / 60000);
   const hrs = Math.floor(diff / 3600000);
@@ -37,7 +38,6 @@ function sortLatestFirst(items = []) {
       new Date(a?.publishedAt || 0).getTime()
   );
 }
-
 
 function useIsDarkMode() {
   const [isDark, setIsDark] = useState(false);
@@ -69,7 +69,7 @@ function useIsDarkMode() {
 
 function SkeletonCard({ isDark = false }) {
   const shimmerBase = isDark
-    ? "linear-gradient(90deg, rgba(34,197,94,0.04) 25%, rgba(34,197,94,0.13) 50%, rgba(34,197,94,0.04) 75%)"
+    ? "linear-gradient(90deg, rgba(34,197,94,0.06) 25%, rgba(34,197,94,0.16) 50%, rgba(34,197,94,0.06) 75%)"
     : "linear-gradient(90deg, rgba(34,197,94,0.05) 25%, rgba(34,197,94,0.14) 50%, rgba(34,197,94,0.05) 75%)";
 
   return (
@@ -80,15 +80,15 @@ function SkeletonCard({ isDark = false }) {
           ? "1px solid rgba(255,255,255,0.08)"
           : "1px solid rgba(34,197,94,0.10)",
         background: isDark
-          ? "linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025))"
-          : "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,250,252,0.86))",
+          ? "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))"
+          : "linear-gradient(180deg, rgba(255,255,255,0.95), rgba(248,250,252,0.90))",
         padding: 16,
         minHeight: 138,
         position: "relative",
         overflow: "hidden",
         boxShadow: isDark
           ? "0 10px 30px rgba(0,0,0,0.24)"
-          : "0 10px 24px rgba(15,23,42,0.04)",
+          : "0 10px 24px rgba(15,23,42,0.05)",
       }}
     >
       <style>{`
@@ -105,7 +105,7 @@ function SkeletonCard({ isDark = false }) {
           borderRadius: 999,
           background: shimmerBase,
           backgroundSize: "440px 100%",
-          animation: "shimmerMove 1.1s ease-in-out infinite",
+          animation: "shimmerMove 1.15s ease-in-out infinite",
           marginBottom: 12,
         }}
       />
@@ -116,7 +116,7 @@ function SkeletonCard({ isDark = false }) {
           borderRadius: 999,
           background: shimmerBase,
           backgroundSize: "440px 100%",
-          animation: "shimmerMove 1.1s ease-in-out infinite",
+          animation: "shimmerMove 1.15s ease-in-out infinite",
           marginBottom: 10,
         }}
       />
@@ -127,18 +127,11 @@ function SkeletonCard({ isDark = false }) {
           borderRadius: 999,
           background: shimmerBase,
           backgroundSize: "440px 100%",
-          animation: "shimmerMove 1.1s ease-in-out infinite",
+          animation: "shimmerMove 1.15s ease-in-out infinite",
           marginBottom: 20,
         }}
       />
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          opacity: 0.75,
-        }}
-      >
+      <div style={{ display: "flex", gap: 8, alignItems: "center", opacity: 0.78 }}>
         <div
           style={{
             width: 14,
@@ -146,7 +139,7 @@ function SkeletonCard({ isDark = false }) {
             borderRadius: 999,
             background: shimmerBase,
             backgroundSize: "440px 100%",
-            animation: "shimmerMove 1.1s ease-in-out infinite",
+            animation: "shimmerMove 1.15s ease-in-out infinite",
           }}
         />
         <div
@@ -156,7 +149,7 @@ function SkeletonCard({ isDark = false }) {
             borderRadius: 999,
             background: shimmerBase,
             backgroundSize: "440px 100%",
-            animation: "shimmerMove 1.1s ease-in-out infinite",
+            animation: "shimmerMove 1.15s ease-in-out infinite",
           }}
         />
       </div>
@@ -195,7 +188,7 @@ function PremiumNewsCard({ item, language, isDark = false }) {
           : "1px solid rgba(34,197,94,0.12)",
         background: isDark
           ? "linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03))"
-          : "linear-gradient(180deg, rgba(255,255,255,0.95), rgba(247,250,252,0.88))",
+          : "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,250,252,0.90))",
         boxShadow: isDark
           ? "0 12px 36px rgba(0,0,0,0.36), 0 1px 0 rgba(255,255,255,0.04) inset"
           : "0 10px 30px rgba(15,23,42,0.05), 0 1px 0 rgba(255,255,255,0.6) inset",
@@ -209,7 +202,7 @@ function PremiumNewsCard({ item, language, isDark = false }) {
         style={{
           height: 3,
           background:
-            "linear-gradient(90deg, rgba(34,197,94,0.0), rgba(34,197,94,0.7), rgba(34,197,94,0.0))",
+            "linear-gradient(90deg, rgba(34,197,94,0.0), rgba(34,197,94,0.72), rgba(34,197,94,0.0))",
         }}
       />
 
@@ -222,7 +215,7 @@ function PremiumNewsCard({ item, language, isDark = false }) {
             gap: 12,
           }}
         >
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
                 fontSize: 14,
@@ -326,13 +319,13 @@ function ModalShell({
         inset: 0,
         zIndex: 9999,
         background: isDark
-          ? "radial-gradient(circle at 20% 10%, rgba(34,197,94,0.12), transparent 26%), radial-gradient(circle at 80% 80%, rgba(59,130,246,0.10), transparent 28%), rgba(3,5,10,0.82)"
-          : "radial-gradient(circle at 20% 10%, rgba(34,197,94,0.12), transparent 26%), rgba(8, 15, 23, 0.48)",
+          ? "radial-gradient(circle at 20% 10%, rgba(34,197,94,0.10), transparent 26%), radial-gradient(circle at 80% 80%, rgba(59,130,246,0.08), transparent 28%), rgba(3,5,10,0.82)"
+          : "radial-gradient(circle at 20% 10%, rgba(34,197,94,0.10), transparent 26%), rgba(8, 15, 23, 0.46)",
         backdropFilter: "blur(22px) saturate(140%)",
         WebkitBackdropFilter: "blur(22px) saturate(140%)",
         display: "grid",
         placeItems: "center",
-        padding: 16,
+        padding: 14,
       }}
     >
       <motion.div
@@ -347,9 +340,9 @@ function ModalShell({
         }}
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: "min(1100px, 100%)",
+          width: "min(1120px, 100%)",
           maxHeight: "88vh",
-          borderRadius: 30,
+          borderRadius: 28,
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
@@ -379,9 +372,10 @@ function ModalShell({
             alignItems: "center",
             justifyContent: "space-between",
             gap: 14,
+            flexWrap: "wrap",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
             <div
               style={{
                 width: 42,
@@ -396,12 +390,13 @@ function ModalShell({
                 display: "grid",
                 placeItems: "center",
                 boxShadow: isDark ? "0 10px 24px rgba(0,0,0,0.28)" : "none",
+                flexShrink: 0,
               }}
             >
               <Newspaper size={17} color="var(--primary)" />
             </div>
 
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text)" }}>
                 Recent News
               </div>
@@ -410,6 +405,9 @@ function ModalShell({
                   fontSize: 12,
                   opacity: isDark ? 0.72 : 0.64,
                   color: "var(--text)",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {language === "hinglish" ? "Hinglish mode" : "English mode"} •{" "}
@@ -427,9 +425,7 @@ function ModalShell({
               border: isDark
                 ? "1px solid rgba(255,255,255,0.08)"
                 : "1px solid rgba(15,23,42,0.10)",
-              background: isDark
-                ? "rgba(255,255,255,0.05)"
-                : "rgba(255,255,255,0.72)",
+              background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.72)",
               display: "grid",
               placeItems: "center",
               cursor: "pointer",
@@ -467,10 +463,8 @@ function ModalShell({
                 padding: 18,
                 pointerEvents: "none",
                 background: isDark
-                  ? "linear-gradient(180deg, rgba(5,5,10,0.24), rgba(5,5,10,0.08))"
-                  : "linear-gradient(180deg, rgba(255,255,255,0.38), rgba(255,255,255,0.12))",
-                backdropFilter: "blur(3px)",
-                WebkitBackdropFilter: "blur(3px)",
+                  ? "linear-gradient(180deg, rgba(5,5,10,0.10), rgba(5,5,10,0.04))"
+                  : "linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.08))",
               }}
             >
               <div
@@ -624,12 +618,13 @@ export default function RecentNewsPanel() {
             justifyContent: "space-between",
             alignItems: "center",
             gap: 12,
+            flexWrap: "wrap",
             background: isDark
               ? "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))"
               : "transparent",
           }}
         >
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0 }}>
             <div
               style={{
                 width: 34,
@@ -643,15 +638,13 @@ export default function RecentNewsPanel() {
                 justifyContent: "center",
                 flexShrink: 0,
                 transform: "translateZ(0)",
-                border: isDark
-                  ? "1px solid rgba(34,197,94,0.16)"
-                  : "none",
+                border: isDark ? "1px solid rgba(34,197,94,0.16)" : "none",
               }}
             >
               <Newspaper size={15} color="var(--primary)" />
             </div>
 
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div
                 style={{
                   fontSize: 11,
@@ -664,13 +657,30 @@ export default function RecentNewsPanel() {
               >
                 Top News
               </div>
-              <div style={{ fontSize: 12, opacity: 0.62, color: "var(--text)" }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  opacity: 0.62,
+                  color: "var(--text)",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 Latest market headlines
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
+            }}
+          >
             <button
               onClick={() =>
                 setLanguage((prev) => (prev === "en" ? "hinglish" : "en"))
@@ -772,7 +782,7 @@ export default function RecentNewsPanel() {
           className="news-scroll"
           style={{
             padding: 12,
-            maxHeight: 242,
+            maxHeight: 242, // 3 news compact view remains same
             overflowY: "auto",
             overscrollBehavior: "contain",
             WebkitOverflowScrolling: "touch",
@@ -830,7 +840,6 @@ export default function RecentNewsPanel() {
               padding: 12px;
               border-radius: 12px;
               border: 1px solid rgba(34,197,94,0.10);
-              background: rgba(34,197,94,0.025);
               text-decoration: none;
               color: inherit;
               transition:
@@ -847,6 +856,12 @@ export default function RecentNewsPanel() {
               background: rgba(34,197,94,0.04);
               box-shadow: 0 6px 12px rgba(0,0,0,0.04);
               transform: translateY(-1px);
+            }
+
+            @media (max-width: 640px) {
+              .news-item {
+                padding: 11px;
+              }
             }
           `}</style>
 
@@ -896,8 +911,8 @@ export default function RecentNewsPanel() {
                   display: "grid",
                   gap: 10,
                   transform: "translateZ(0)",
-                  opacity: showRefreshingOverlay ? 0.8 : 1,
-                  filter: showRefreshingOverlay ? "saturate(0.96)" : "none",
+                  opacity: showRefreshingOverlay ? 0.88 : 1,
+                  filter: showRefreshingOverlay ? "saturate(0.98)" : "none",
                 }}
               >
                 {displayNews.map((item, i) => (
@@ -970,10 +985,8 @@ export default function RecentNewsPanel() {
                   pointerEvents: "none",
                   borderRadius: 16,
                   background: isDark
-                    ? "linear-gradient(180deg, rgba(5,5,10,0.28), rgba(5,5,10,0.08))"
-                    : "linear-gradient(180deg, rgba(255,255,255,0.34), rgba(255,255,255,0.10))",
-                  backdropFilter: "blur(3px)",
-                  WebkitBackdropFilter: "blur(3px)",
+                    ? "linear-gradient(180deg, rgba(5,5,10,0.08), rgba(5,5,10,0.03))"
+                    : "linear-gradient(180deg, rgba(255,255,255,0.24), rgba(255,255,255,0.08))",
                   padding: 0,
                 }}
               >
@@ -1021,7 +1034,8 @@ export default function RecentNewsPanel() {
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(min(100%, 260px), 1fr))",
                       gap: 14,
                     }}
                   >
