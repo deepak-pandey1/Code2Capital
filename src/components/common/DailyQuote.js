@@ -318,7 +318,10 @@ const quotesEN = [
   { text: "The patient always win in the end.", type: "Patience" },
   { text: "Your best days are ahead if you stay disciplined.", type: "Mindset" },
   { text: "Risk smart. Trade calm. Win big.", type: "Risk" },
-  { text: "Follow the plan. Trust the process.", type: "Discipline" }
+  { text: "Follow the plan. Trust the process.", type: "Discipline" },
+  { text: "Focus on discipline, not capital.", type: "Discipline" },
+  { text: "Focus on consistency, not strategy.", type: "Consistency" },
+  { text: "Focus on calmness, not excitement.", type: "Calmness" }
 ];
 
 const quotesHN = [
@@ -635,7 +638,10 @@ const quotesHN = [
   { text: "Patient hamesha end me jeette hain.", type: "Patience" },
   { text: "Agar disciplined raho to tumhare best days aage hain.", type: "Mindset" },
   { text: "Risk smart. Trade calm. Win big.", type: "Risk" },
-  { text: "Plan follow karo. Process par trust karo.", type: "Discipline" }
+  { text: "Plan follow karo. Process par trust karo.", type: "Discipline" },
+  { text: "Capital nahi, discipline improve karo.", type: "Discipline" },
+  { text: "Strategy nahi, consistency build karo.", type: "Consistency" },
+  { text: "Excitement nahi, calm rehna seekho.", type: "Calmness" }
 ];
 
 export default function DailyQuote({ lang }) {
