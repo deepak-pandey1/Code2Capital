@@ -179,79 +179,112 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(false);
   const [lang, setLang] = useState("EN");
 
-  const [userId, setUserId] = useState("");
-  const [authReady, setAuthReady] = useState(false);
+const [userId, setUserId] = useState("");
+const [authReady, setAuthReady] = useState(false);
+const [currentUser, setCurrentUser] = useState(null);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUserId(user ? user.uid : "");
-      setAuthReady(true);
-    });
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    setCurrentUser(user || null);
+    setUserId(user ? user.uid : "");
+    setAuthReady(true);
+  });
 
-    return () => unsubscribe();
-  }, []);
+  return () => unsubscribe();
+}, []);
 
-  useEffect(() => {
-    if (!authReady) return;
+useEffect(() => {
+  if (!authReady) return;
 
-    if (!userId) {
-      setSavedRule(null);
-      setRuleText("");
-      setEditing(false);
-      return;
-    }
-
+  if (!currentUser) {
     setSavedRule(null);
     setRuleText("");
     setEditing(false);
+    return;
+  }
 
-    fetch(`/api/core-rule?userId=${userId}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.rule) {
-          setSavedRule(d.rule);
-          setRuleText(d.rule.text || "");
-        } else {
-          setSavedRule(null);
-          setRuleText("");
-        }
-      })
-      .catch(() => {
+  setSavedRule(null);
+  setRuleText("");
+  setEditing(false);
+
+  const loadRule = async () => {
+    try {
+      const token = await currentUser.getIdToken();
+
+      const res = await fetch("/api/core-rule", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const d = await res.json();
+
+      if (d?.rule) {
+        setSavedRule(d.rule);
+        setRuleText(d.rule.text || "");
+      } else {
         setSavedRule(null);
         setRuleText("");
-      });
-  }, [userId, authReady]);
-
-  const saveRule = async () => {
-    if (!userId) {
-      alert("Please login first");
-      return;
+      }
+    } catch (error) {
+      setSavedRule(null);
+      setRuleText("");
     }
+  };
+
+  loadRule();
+}, [currentUser, authReady]);
+
+const saveRule = async () => {
+  if (!currentUser) {
+    alert("Please login first");
+    return;
+  }
+
+  try {
+    const token = await currentUser.getIdToken();
 
     const res = await fetch("/api/core-rule", {
-      method: savedRule ? "PUT" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: ruleText, userId }),
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ text: ruleText }),
     });
 
     const data = await res.json();
+
+    if (!res.ok) {
+      alert(data?.message || "Failed to save core rule");
+      return;
+    }
+
     setSavedRule(data.rule);
     setEditing(false);
-  };
+  } catch (error) {
+    alert("Network error while saving core rule");
+  }
+};
 
-  const deleteRule = async () => {
-    if (!userId) return;
+const deleteRule = async () => {
+  if (!currentUser) return;
 
-    await fetch("/api/core-rule", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: savedRule?._id, userId }),
-    });
+  const token = await currentUser.getIdToken();
 
-    setSavedRule(null);
-    setRuleText("");
-    setEditing(false);
-  };
+  await fetch("/api/core-rule", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ id: savedRule?._id }),
+  });
+
+  setSavedRule(null);
+  setRuleText("");
+  setEditing(false);
+};
 
   if (!authReady) {
     return (
@@ -599,18 +632,20 @@ export default function Dashboard() {
                           "
                         </div>
                         <p
-                          style={{
-                            fontSize: "15px",
-                            fontStyle: "italic",
-                            lineHeight: 1.78,
-                            opacity: 0.85,
-                            margin: 0,
-                            position: "relative",
-                            zIndex: 1,
-                          }}
-                        >
-                          {savedRule.text}
-                        </p>
+  style={{
+    fontSize: "15px",
+    fontStyle: "italic",
+    lineHeight: 1.78,
+    opacity: 0.85,
+    margin: 0,
+    position: "relative",
+    zIndex: 1,
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+  }}
+>
+  {savedRule.text}
+</p>
                       </div>
 
                       <div
