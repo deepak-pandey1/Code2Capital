@@ -1,5 +1,6 @@
 "use client";
 
+import CursorGlow from "@/components/CursorGlow";
 import { motion, useScroll, useSpring } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -9,8 +10,7 @@ import Hero from "@/components/home/Hero";
 import Features from "@/components/home/Features";
 import DashboardPreview from "@/components/home/DashboardPreview";
 import Benefits from "@/components/home/Benefits";
-import GlobalReach from "@/components/home/GlobalReach";
-import Achievement from "@/components/home/Achievement";
+// import GlobalReach from "@/components/home/GlobalReach";
 import Footer from "@/components/home/Footer";
 
 // ✅ ADD THIS IMPORT
@@ -26,17 +26,10 @@ export default function Home() {
     mass: 0.5,
   });
 
-  const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [dark, setDark] = useState(true);
 
   // ✅ ADD THIS STATE (THIS IS STEP 2)
   const [openLogin, setOpenLogin] = useState(false);
-
-  useEffect(() => {
-    const move = (e) => setMouse({ x: e.clientX, y: e.clientY });
-    window.addEventListener("mousemove", move);
-    return () => window.removeEventListener("mousemove", move);
-  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
@@ -56,13 +49,8 @@ export default function Home() {
   return (
     <main className="relative bg-[var(--bg)] text-[var(--text)] overflow-x-hidden">
 
-      {/* Cursor Glow */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0"
-        style={{
-          background: `radial-gradient(600px at ${mouse.x}px ${mouse.y}px, rgba(34,197,94,0.10), transparent 80%)`,
-        }}
-      />
+      <CursorGlow />
+      
 
       {/* Scroll Bar */}
       <motion.div
@@ -97,7 +85,7 @@ export default function Home() {
       <Features />
       <DashboardPreview />
       <Benefits />
-      <GlobalReach />
+      {/* <GlobalReach /> */}
       {/* <Achievement /> */}
       <Footer />
 

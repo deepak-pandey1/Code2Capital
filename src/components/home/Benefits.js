@@ -25,9 +25,10 @@ export default function Benefits() {
             ].map((text, i) => (
               <motion.div 
                 key={i}
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: -14 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
+                viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+                transition={{ duration: 0.55, ease: "easeOut", delay: i * 0.08 }}
                 className="flex gap-4 items-start"
               >
                 <CheckCircle2 className="text-green-400 shrink-0 mt-1" size={20} />
@@ -46,9 +47,10 @@ export default function Benefits() {
             {/* CARD 1 */}
             <motion.div 
               whileHover={{ y: -6, scale: 1.02 }}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+              transition={{ duration: 0.55, ease: "easeOut" }}
               className="p-6 h-48 rounded-2xl bg-gradient-to-br from-green-500/10 to-transparent border border-green-500/20 flex flex-col justify-between"
             >
               <h4 className="font-bold mb-1">Smart Decisions</h4>
@@ -56,7 +58,8 @@ export default function Benefits() {
               <motion.p 
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
+                viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+                transition={{ duration: 0.45, ease: "easeOut", delay: 0.18 }}
                 className="text-xs opacity-60"
               >
                 Eliminate emotional decision-making with data.
@@ -65,7 +68,8 @@ export default function Benefits() {
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: "100%" }}
-                transition={{ duration: 1 }}
+                viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+                transition={{ duration: 0.9, ease: "easeOut" }}
                 className="h-[2px] bg-green-400 mt-2"
               />
             </motion.div>
@@ -73,9 +77,10 @@ export default function Benefits() {
             {/* CARD 2 */}
             <motion.div 
               whileHover={{ y: -6, rotate: 0.5 }}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.94 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
+              viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+              transition={{ duration: 0.55, ease: "easeOut" }}
               className="p-6 h-64 rounded-2xl bg-[var(--card)] border border-[var(--border)] flex flex-col justify-between overflow-hidden"
             >
               <div>
@@ -84,7 +89,8 @@ export default function Benefits() {
                 <motion.p 
                   initial={{ clipPath: "inset(0 100% 0 0)" }}
                   whileInView={{ clipPath: "inset(0 0% 0 0)" }}
-                  transition={{ duration: 1 }}
+                  viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+                  transition={{ duration: 0.95, ease: "easeOut" }}
                   className="text-xs opacity-60"
                 >
                   Identify which setups actually make you money.
@@ -103,7 +109,8 @@ export default function Benefits() {
                     strokeLinecap="round"
                     initial={{ pathLength: 0 }}
                     whileInView={{ pathLength: 1 }}
-                    transition={{ duration: 1.5, ease: "easeInOut" }}
+                    viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+                    transition={{ duration: 1.35, ease: "easeInOut" }}
                   />
 
                   {/* DOT */}
@@ -115,7 +122,8 @@ export default function Benefits() {
                     }}
                     initial={{ offsetDistance: "0%" }}
                     whileInView={{ offsetDistance: "100%" }}
-                    transition={{ duration: 1.5, ease: "easeInOut" }}
+                    viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+                    transition={{ duration: 1.35, ease: "easeInOut" }}
                   />
 
                 </svg>
@@ -130,9 +138,10 @@ export default function Benefits() {
             {/* CARD 3 */}
             <motion.div 
               whileHover={{ y: -6, scale: 1.02 }}
-              initial={{ opacity: 0, x: 40 }}
+              initial={{ opacity: 0, x: 32 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
+              viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+              transition={{ duration: 0.55, ease: "easeOut" }}
               className="p-6 h-64 rounded-2xl bg-[var(--card)] border border-[var(--border)] flex flex-col justify-between overflow-hidden"
             >
               <div>
@@ -141,7 +150,8 @@ export default function Benefits() {
                 <motion.p 
                   initial={{ width: 0 }}
                   whileInView={{ width: "100%" }}
-                  transition={{ duration: 1.2 }}
+                  viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+                  transition={{ duration: 1.05, ease: "easeOut" }}
                   className="text-xs opacity-60 overflow-hidden whitespace-nowrap"
                 >
                   Automated risk management calculations.
@@ -154,7 +164,8 @@ export default function Benefits() {
                     key={i}
                     initial={{ height: 0 }}
                     whileInView={{ height: `${h}%` }}
-                    transition={{ delay: i * 0.1, duration: 0.6 }}
+                    viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+                    transition={{ delay: i * 0.08, duration: 0.55, ease: "easeOut" }}
                     className="flex-1 bg-green-400/30 rounded-md relative overflow-hidden"
                   >
                     <motion.div
@@ -170,15 +181,17 @@ export default function Benefits() {
             {/* CARD 4 */}
             <motion.div 
               whileHover={{ y: -6 }}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+              transition={{ duration: 0.55, ease: "easeOut" }}
               className="p-6 h-48 rounded-2xl bg-gradient-to-tr from-green-500/20 to-green-500/5 border border-green-400/30 flex flex-col justify-center items-center text-center"
             >
               <motion.div
-                initial={{ scale: 0 }}
+                initial={{ scale: 0.9 }}
                 whileInView={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 120 }}
+                viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+                transition={{ type: "spring", stiffness: 120, damping: 14 }}
                 className="text-lg font-bold text-green-400"
               >
                 100% Free
@@ -187,7 +200,8 @@ export default function Benefits() {
               <motion.p
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
+                viewport={{ amount: 0.3, margin: "0px 0px -8% 0px" }}
+                transition={{ duration: 0.45, ease: "easeOut", delay: 0.2 }}
                 className="text-[10px] uppercase font-bold opacity-60"
               >
                 No hidden subscriptions
