@@ -714,7 +714,60 @@ const sourceWrapRef = useRef(null);
   );
 }
 
-export default function RecentNewsPanel() {
+function CompactNewsSkeleton({ isDark = false }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      style={{
+        height: 62,
+        borderRadius: 12,
+        border: isDark
+          ? "1px solid rgba(255,255,255,0.08)"
+          : "1px solid rgba(34,197,94,0.10)",
+        background: isDark
+          ? "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))"
+          : "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,250,252,0.90))",
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
+      <motion.div
+        animate={{ x: ["-120%", "220%"] }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "45%",
+          background:
+            "linear-gradient(90deg, transparent, rgba(34,197,94,0.10), transparent)",
+        }}
+      />
+      <div style={{ padding: 12, position: "relative", zIndex: 1 }}>
+        <div
+          style={{
+            height: 11,
+            width: "85%",
+            borderRadius: 999,
+            background: isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,42,0.06)",
+            marginBottom: 8,
+          }}
+        />
+        <div
+          style={{
+            height: 9,
+            width: "46%",
+            borderRadius: 999,
+            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.05)",
+          }}
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+export default function RecentNewsPanel({ onInitialLoaded }) {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -804,10 +857,14 @@ const displayNews = useMemo(() => {
     } catch {
       setNews([]);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
-      inFlightRef.current = false;
-    }
+  setLoading(false);
+  setRefreshing(false);
+  inFlightRef.current = false;
+
+  if (!manual && onInitialLoaded) {
+    onInitialLoaded();
+  }
+}
   };
 
   useEffect(() => {
@@ -1128,22 +1185,22 @@ const showLoader = loading || refreshing;
 
                     <AnimatePresence mode="wait" initial={false}>
   {showLoader ? (
-    <motion.div
-      key={refreshing ? "refresh-loader" : "initial-loader"}
-      initial={{ opacity: 0, y: 8, scale: 0.995 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -6, scale: 0.995 }}
-      transition={animationSpring}
-      style={{
-        display: "grid",
-        gap: 10,
-      }}
-    >
-      {Array.from({ length: 3 }).map((_, i) => (
-        <PremiumLoaderCard key={i} isDark={isDark} />
-      ))}
-    </motion.div>
-  ) : visibleNews.length === 0 ? (
+  <motion.div
+    key={refreshing ? "refresh-loader" : "initial-loader"}
+    initial={{ opacity: 0, y: 8, scale: 0.995 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    exit={{ opacity: 0, y: -6, scale: 0.995 }}
+    transition={animationSpring}
+    style={{
+      display: "grid",
+      gap: 10,
+    }}
+  >
+    {Array.from({ length: 3 }).map((_, i) => (
+      <CompactNewsSkeleton key={i} isDark={isDark} />
+    ))}
+  </motion.div>
+) : visibleNews.length === 0 ? (
     <motion.div
       key="empty-state"
       initial={{ opacity: 0, y: 6 }}
@@ -1297,5 +1354,3 @@ const showLoader = loading || refreshing;
     </>
   );
 }
-
-

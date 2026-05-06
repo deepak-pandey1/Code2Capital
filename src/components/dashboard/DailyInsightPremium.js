@@ -2,9 +2,17 @@
 
 import { motion } from "framer-motion";
 import { Zap } from "lucide-react";
+import { useEffect } from "react";
 import DailyQuote from "@/components/common/DailyQuote";
 
-export default function DailyInsightPremium({ lang, setLang }) {
+export default function DailyInsightPremium({ lang, setLang, onInitialLoaded }) {
+
+  useEffect(() => {
+    if (onInitialLoaded) {
+      onInitialLoaded();
+    }
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}

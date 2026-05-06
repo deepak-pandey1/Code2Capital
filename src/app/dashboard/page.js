@@ -8,6 +8,7 @@ import { PencilLine, Plus, Save, X, Trash2, BookMarked } from "lucide-react";
 
 import RecentNewsPanel from "@/components/dashboard/RecentNewsPanel";
 import { auth } from "@/lib/firebase";
+import DashboardSkeleton from "@/components/dashboard/DashboardSkeleton";
 import DailyInsightPremium from "@/components/dashboard/DailyInsightPremium";
 
 /* ═══════════════════════════════════════════════════
@@ -69,9 +70,13 @@ function Card({ children, delay = 0, style = {} }) {
         background: "var(--card)",
         overflow: "hidden",
         boxShadow:
-          "0 2px 8px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(255,255,255,0.03) inset",
-        animation: `fadeUp 0.45s ease ${delay}s both`,
+          "0 12px 30px rgba(0,0,0,0.05), 0 1px 0 rgba(255,255,255,0.04) inset",
+       animation: `fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s both`,
         willChange: "transform, opacity",
+        // 🔥 ADD THESE 3 LINES (important for zero jerk)
+        transform: "translateZ(0)",
+        backfaceVisibility: "hidden",
+        WebkitFontSmoothing: "antialiased",
         ...style,
       }}
     >
@@ -183,6 +188,9 @@ const [userId, setUserId] = useState("");
 const [authReady, setAuthReady] = useState(false);
 const [currentUser, setCurrentUser] = useState(null);
 
+const [coreRuleReady, setCoreRuleReady] = useState(false);
+const [minLoadingDone, setMinLoadingDone] = useState(false);
+
 useEffect(() => {
   const unsubscribe = onAuthStateChanged(auth, (user) => {
     setCurrentUser(user || null);
@@ -200,12 +208,14 @@ useEffect(() => {
     setSavedRule(null);
     setRuleText("");
     setEditing(false);
+    setCoreRuleReady(true);
     return;
   }
 
   setSavedRule(null);
   setRuleText("");
   setEditing(false);
+  setCoreRuleReady(false);
 
   const loadRule = async () => {
     try {
@@ -229,11 +239,18 @@ useEffect(() => {
     } catch (error) {
       setSavedRule(null);
       setRuleText("");
+    } finally {
+      setCoreRuleReady(true);
     }
   };
 
   loadRule();
 }, [currentUser, authReady]);
+
+useEffect(() => {
+  const t = setTimeout(() => setMinLoadingDone(true), 650);
+  return () => clearTimeout(t);
+}, []);
 
 const saveRule = async () => {
   if (!currentUser) {
@@ -286,21 +303,9 @@ const deleteRule = async () => {
   setEditing(false);
 };
 
-  if (!authReady) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "grid",
-          placeItems: "center",
-          background: "var(--bg)",
-          color: "var(--text)",
-        }}
-      >
-        Loading...
-      </div>
-    );
-  }
+if (!authReady || !minLoadingDone || !coreRuleReady) {
+  return <DashboardSkeleton />;
+}
 
   return (
     <div
@@ -310,45 +315,79 @@ const deleteRule = async () => {
         color: "var(--text)",
         position: "relative",
         overflowX: "hidden",
+            // 🔥 ADD THESE
+    WebkitOverflowScrolling: "touch",
+    scrollBehavior: "smooth",
       }}
     >
       <style>{`
-        html {
-          scroll-behavior: smooth;
-        }
-        body {
-          overscroll-behavior-y: none;
-        }
-        @keyframes fadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(14px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @media (max-width: 980px) {
-          .dashboard-shell {
-            padding: 2px 16px !important;
-          }
-          .dashboard-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-        @media (max-width: 640px) {
-          .dashboard-shell {
-            padding: 2px 12px !important;
-          }
-          .dashboard-card-body {
-            padding: 16px 16px 18px !important;
-          }
-          .dashboard-card-header {
-            padding: 16px 16px 14px !important;
-          }
-        }
-      `}</style>
+  html, body {
+    scroll-behavior: smooth;
+    overscroll-behavior-y: none;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* smooth premium scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(34,197,94,0.24) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgba(34,197,94,0.22);
+    border-radius: 999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(34,197,94,0.34);
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 980px) {
+    .dashboard-shell {
+      padding: 2px 16px !important;
+    }
+    .dashboard-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dashboard-shell {
+      padding: 2px 12px !important;
+    }
+    .dashboard-card-body {
+      padding: 16px 16px 18px !important;
+    }
+    .dashboard-card-header {
+      padding: 16px 16px 14px !important;
+    }
+  }
+`}</style>
 
       <AmbientBackground />
 

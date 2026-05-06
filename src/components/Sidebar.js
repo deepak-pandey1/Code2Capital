@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,8 +13,6 @@ import {
   X,
   LogOut,
   UserCircle2,
-  Sun,
-  Moon,
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -29,9 +28,9 @@ export function LogoMark({ size = 40, className = "" }) {
       xmlns="http://www.w3.org/2000/svg"
       className={`shrink-0 text-[var(--text)] ${className}`}
       style={{ willChange: "transform" }}
-      initial={{ scale: 0.95, opacity: 0 }}
+      initial={{ scale: 0.96, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
+      transition={{ duration: 0.28, ease: "easeOut" }}
       aria-hidden="true"
     >
       <motion.circle
@@ -62,7 +61,7 @@ export function LogoMark({ size = 40, className = "" }) {
         strokeLinejoin="round"
         initial={{ pathLength: 0, opacity: 0 }}
         animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 1.0, delay: 0.15 }}
+        transition={{ duration: 0.8, delay: 0.08 }}
       />
       <motion.path
         d="M26 13 L29.5 19 L26 25"
@@ -73,7 +72,7 @@ export function LogoMark({ size = 40, className = "" }) {
         strokeLinejoin="round"
         initial={{ pathLength: 0, opacity: 0 }}
         animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 1.0, delay: 0.15 }}
+        transition={{ duration: 0.8, delay: 0.08 }}
       />
       <motion.path
         d="M16.5 23 L19 17 L21.5 23"
@@ -84,7 +83,7 @@ export function LogoMark({ size = 40, className = "" }) {
         strokeLinejoin="round"
         initial={{ pathLength: 0 }}
         animate={{ pathLength: 1 }}
-        transition={{ duration: 0.9, delay: 0.75 }}
+        transition={{ duration: 0.7, delay: 0.55 }}
       />
       <motion.circle
         cx="19"
@@ -92,8 +91,8 @@ export function LogoMark({ size = 40, className = "" }) {
         r="1.6"
         fill="rgb(34 197 94)"
         initial={{ scale: 0 }}
-        animate={{ scale: [0, 1.2, 1] }}
-        transition={{ duration: 0.5, delay: 0.95 }}
+        animate={{ scale: [0, 1.15, 1] }}
+        transition={{ duration: 0.45, delay: 0.7 }}
       />
     </motion.svg>
   );
@@ -107,10 +106,10 @@ function BrandMark({ compact }) {
       <AnimatePresence initial={false}>
         {!compact && (
           <motion.div
-            initial={{ opacity: 0, x: -10 }}
+            initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             className="min-w-0 select-none"
           >
             <div className="text-base font-semibold tracking-tight text-[var(--text)]">
@@ -145,6 +144,15 @@ export default function Sidebar({
 
   const compact = !isMobile && collapsed;
 
+  const menuItems = useMemo(
+    () => [
+      { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+      { name: "Journal", icon: BookOpen, path: "/dashboard/journal" },
+      { name: "Analytics", icon: BarChart3, path: "/dashboard/analytics" },
+    ],
+    []
+  );
+
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
 
@@ -177,6 +185,13 @@ export default function Sidebar({
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, [accountMenuOpen]);
 
+  useEffect(() => {
+    // Prefetch routes so click feels instant.
+    menuItems.forEach((item) => {
+      router.prefetch(item.path);
+    });
+  }, [menuItems, router]);
+
   const handleLogout = async () => {
     try {
       setAccountMenuOpen(false);
@@ -185,17 +200,11 @@ export default function Sidebar({
       setTimeout(async () => {
         await logoutUser();
         router.replace("/");
-      }, 180);
+      }, 120);
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
-
-  const menuItems = [
-    { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-    { name: "Journal", icon: BookOpen, path: "/dashboard/journal" },
-    { name: "Analytics", icon: BarChart3, path: "/dashboard/analytics" },
-  ];
 
   const displayName =
     user?.displayName ||
@@ -210,36 +219,36 @@ export default function Sidebar({
     .slice(0, 2)
     .toUpperCase();
 
+  const closeMenus = useCallback(() => {
+    setMobileOpen(false);
+    setAccountMenuOpen(false);
+  }, [setMobileOpen]);
+
   return (
     <motion.aside
       initial={false}
       animate={
         isMobile
-          ? { x: mobileOpen ? "0%" : "-105%" }
+          ? { x: mobileOpen ? 0 : "-105%" }
           : { width: compact ? 76 : 280, x: 0 }
       }
       transition={
         isMobile
           ? {
-              x: { type: "spring", stiffness: 380, damping: 34, mass: 0.9 },
+              x: { type: "spring", stiffness: 420, damping: 38, mass: 0.85 },
             }
           : {
-              width: { duration: 0.28, ease: "easeOut" },
+              width: { duration: 0.22, ease: "easeOut" },
             }
       }
       className={`
-  fixed left-0 top-0 z-50 flex h-dvh flex-col border-r border-[var(--border)]
-  
-  /* MOBILE = glass effect */
-  bg-[var(--card)]/80 backdrop-blur-xl
-  
-  /* DESKTOP = solid clean */
-  md:bg-[var(--card)] md:backdrop-blur-none
-  
-  shadow-2xl
-  ${isMobile ? "w-[88vw] max-w-[340px]" : ""}
-  md:sticky md:top-0 md:translate-x-0
-`}
+        fixed left-0 top-0 z-50 flex h-dvh flex-col border-r border-[var(--border)]
+        bg-[var(--card)]/85 backdrop-blur-xl shadow-2xl
+        md:bg-[var(--card)] md:backdrop-blur-none
+        transform-gpu
+        ${isMobile ? "w-[88vw] max-w-[340px]" : ""}
+        md:sticky md:top-0 md:translate-x-0
+      `}
       style={{
         width: isMobile ? undefined : compact ? "76px" : "280px",
         willChange: "transform, width",
@@ -252,7 +261,7 @@ export default function Sidebar({
 
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setCollapsed(!collapsed)}
+              onClick={() => setCollapsed((v) => !v)}
               className="hidden rounded-xl p-2 text-[var(--text)]/80 transition hover:bg-[var(--bg)] hover:text-[var(--text)] md:inline-flex"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
@@ -281,13 +290,12 @@ export default function Sidebar({
             const active = pathname === item.path;
 
             return (
-              <button
+              <Link
                 key={item.path}
-                onClick={() => {
-                  router.push(item.path);
-                  setMobileOpen(false);
-                  setAccountMenuOpen(false);
-                }}
+                href={item.path}
+                prefetch
+                scroll={false}
+                onClick={closeMenus}
                 className={`
                   group flex w-full items-center rounded-2xl px-3 py-3 text-sm font-medium
                   transition-all duration-200 ease-out
@@ -311,36 +319,35 @@ export default function Sidebar({
                 <AnimatePresence initial={false}>
                   {!compact && (
                     <motion.span
-                      initial={{ opacity: 0, x: -8 }}
+                      initial={{ opacity: 0, x: -6 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -8 }}
-                      transition={{ duration: 0.18 }}
+                      exit={{ opacity: 0, x: -6 }}
+                      transition={{ duration: 0.16, ease: "easeOut" }}
                       className="whitespace-nowrap"
                     >
                       {item.name}
                     </motion.span>
                   )}
                 </AnimatePresence>
-              </button>
+              </Link>
             );
           })}
         </nav>
 
         {/* Bottom account section */}
-        <div className="mt-auto pt-3 border-t border-[var(--border)]">
+        <div className="mt-auto border-t border-[var(--border)] pt-3">
           <div className="relative" data-account-menu>
             <button
               onClick={() => setAccountMenuOpen((v) => !v)}
               className={`
-                flex w-full items-center rounded-2xl px-3 py-3 text-sm font-medium
-                transition-all duration-200 ease-out
+                flex w-full items-center rounded-2xl border border-[var(--border)]
+                bg-[var(--bg)]/50 px-3 py-3 text-sm font-medium text-[var(--text)]
+                transition-all duration-200 ease-out hover:bg-[var(--bg)]/80
                 ${compact ? "justify-center px-2" : "justify-start gap-3"}
-                bg-[var(--bg)]/50 hover:bg-[var(--bg)]/80 text-[var(--text)]
-                border border-[var(--border)]
               `}
               aria-label="Open account menu"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[var(--primary)] font-bold">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 font-bold text-[var(--primary)]">
                 {initials}
               </div>
 
@@ -368,19 +375,18 @@ export default function Sidebar({
             <AnimatePresence>
               {accountMenuOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                  initial={{ opacity: 0, y: 8, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.96 }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                  transition={{ duration: 0.16, ease: "easeOut" }}
                   className={`
                     absolute bottom-[74px] z-50 overflow-hidden rounded-3xl
-                    border border-[var(--border)]
-                    bg-[var(--card)]/98 backdrop-blur-2xl
+                    border border-[var(--border)] bg-[var(--card)]/98 backdrop-blur-2xl
                     shadow-[0_24px_80px_rgba(0,0,0,0.35)]
                     ${isMobile ? "left-0 w-full" : compact ? "left-0 w-[260px]" : "left-0 w-full"}
                   `}
                 >
-                  <div className="px-4 py-4 border-b border-[var(--border)]">
+                  <div className="border-b border-[var(--border)] px-4 py-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[var(--primary)]">
                         <UserCircle2 size={22} />
@@ -402,37 +408,33 @@ export default function Sidebar({
                     </p>
 
                     <button
-  onClick={() => setDark((prev) => !prev)}
-  className="flex w-full items-center justify-between px-3 py-3 rounded-2xl text-sm font-medium 
-  transition-colors duration-200 hover:bg-[var(--bg)]/70"
->
-  {/* Label */}
-  <span className="text-[var(--text)]">
-    {dark ? "Dark mode" : "Light mode"}
-  </span>
+                      onClick={() => setDark((prev) => !prev)}
+                      className="flex w-full items-center justify-between rounded-2xl px-3 py-3 text-sm font-medium transition-colors duration-200 hover:bg-[var(--bg)]/70"
+                    >
+                      <span className="text-[var(--text)]">
+                        {dark ? "Dark mode" : "Light mode"}
+                      </span>
 
-  {/* Toggle */}
-  <div
-    className={`
-      relative w-11 h-6 rounded-full border border-[var(--border)]
-      transition-colors duration-300
-      ${dark ? "bg-[var(--bg)]" : "bg-[var(--card)]"}
-    `}
-  >
-    <motion.div
-      initial={false}
-      animate={{ x: dark ? 20 : 2 }}
-      transition={{
-        type: "spring",
-        stiffness: 400,
-        damping: 30,
-        mass: 0.8,
-      }}
-      className="absolute top-[2px] w-5 h-5 rounded-full 
-      bg-[var(--text)] shadow-sm"
-    />
-  </div>
-</button>
+                      <div
+                        className={`
+                          relative h-6 w-11 rounded-full border border-[var(--border)]
+                          transition-colors duration-300
+                          ${dark ? "bg-[var(--bg)]" : "bg-[var(--card)]"}
+                        `}
+                      >
+                        <motion.div
+                          initial={false}
+                          animate={{ x: dark ? 20 : 2 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 30,
+                            mass: 0.8,
+                          }}
+                          className="absolute top-[2px] h-5 w-5 rounded-full bg-[var(--text)] shadow-sm"
+                        />
+                      </div>
+                    </button>
                   </div>
 
                   <div className="px-2 pb-2">
