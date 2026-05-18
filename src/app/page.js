@@ -83,7 +83,7 @@ export default function Home() {
       />
 
       <Features />
-      <DashboardPreview />
+      {/* <DashboardPreview /> */}
       <Benefits />
       {/* <GlobalReach /> */}
       {/* <Achievement /> */}
